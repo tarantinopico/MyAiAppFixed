@@ -60,7 +60,7 @@ class GroqClient(
             }
 
             val body = response.body() ?: throw IOException("Empty response body")
-            val source = body.source().buffer()
+            val source = body.source()
 
             val adapter = moshi.adapter(ChatCompletionResponse::class.java)
             var fullText = ""

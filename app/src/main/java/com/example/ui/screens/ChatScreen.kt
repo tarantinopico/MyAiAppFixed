@@ -312,9 +312,25 @@ fun ChatMessageItem(message: ChatMessage) {
 fun MarkdownText(text: String, color: androidx.compose.ui.graphics.Color) {
     if (text.isEmpty()) return
     
-    androidx.compose.material3.Text(
-        text = text,
-        color = color,
-        style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val markwon = remember(context) { io.noties.markwon.Markwon.create(context) }
+    
+    AndroidView(
+        modifier = Modifier,
+        factory = { ctx ->
+            android.widget.TextView(ctx).apply {
+                layoutParams = android.view.ViewGroup.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                setTextColor(color.toArgb())
+                textSize = 16f
+                setLineSpacing(0f, 1.2f)
+            }
+        },
+        update = { textView ->
+            markwon.setMarkdown(textView, text)
+            textView.setTextColor(color.toArgb())
+        }
     )
 }
