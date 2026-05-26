@@ -1,0 +1,6 @@
+{
+  "name": "AI Model Aggregator",
+  "description": "A multi-provider AI chatbot aggregator",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
