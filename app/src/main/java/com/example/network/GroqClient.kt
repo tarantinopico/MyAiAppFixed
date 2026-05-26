@@ -44,10 +44,10 @@ class GroqClient(
         )
 
         try {
-            val response = api.createChatCompletionStream("Bearer \$apiKey", request)
+            val response = api.createChatCompletionStream("Bearer $apiKey", request)
             if (!response.isSuccessful) {
                 val errorBody = response.errorBody()?.string() ?: "Unknown error"
-                emit(ChatStreamEvent.Error("HTTP \${response.code()}: \$errorBody"))
+                emit(ChatStreamEvent.Error("HTTP ${response.code()}: $errorBody"))
                 return@flow
             }
 
