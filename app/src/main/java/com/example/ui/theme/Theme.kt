@@ -13,51 +13,59 @@ import androidx.compose.material3.Shapes
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 
-private val DarkColorScheme =
-  darkColorScheme(primary = Purple80, secondary = PurpleGrey80, tertiary = Pink80)
+private val DarkColorScheme = darkColorScheme(
+    primary = AccentIndigo,
+    secondary = AccentPurple,
+    tertiary = AccentBlue,
+    background = BgDark,
+    surface = BgDark,
+    surfaceVariant = GlassDark.copy(alpha = 0.2f),
+    onPrimary = TextPrimaryDark,
+    onSecondary = TextPrimaryDark,
+    onTertiary = TextPrimaryDark,
+    onBackground = TextPrimaryDark,
+    onSurface = TextPrimaryDark,
+    onSurfaceVariant = TextSecondaryDark,
+    outline = GlassWhite.copy(alpha = 0.15f)
+)
 
-private val LightColorScheme =
-  lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40,
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-  )
+private val LightColorScheme = lightColorScheme(
+    primary = AccentIndigo,
+    secondary = AccentPurple,
+    tertiary = AccentBlue,
+    background = BgLight,
+    surface = BgLight,
+    surfaceVariant = GlassWhite.copy(alpha = 0.8f),
+    onPrimary = TextPrimaryDark,
+    onSecondary = TextPrimaryDark,
+    onTertiary = TextPrimaryDark,
+    onBackground = TextPrimaryLight,
+    onSurface = TextPrimaryLight,
+    onSurfaceVariant = TextSecondaryLight,
+    outline = GlassDark.copy(alpha = 0.15f)
+)
 
 private val AppShapes = Shapes(
     small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(28.dp),
+    large = RoundedCornerShape(26.dp),
     extraLarge = RoundedCornerShape(32.dp)
 )
 
 @Composable
 fun MyApplicationTheme(
-
-  darkTheme: Boolean = isSystemInDarkTheme(),
-  // Dynamic color is available on Android 12+
-  dynamicColor: Boolean = true,
-  content: @Composable () -> Unit,
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = false, // Turn off dynamic color to maintain consistent brand/glass feel
+    content: @Composable () -> Unit,
 ) {
-  val colorScheme =
-    when {
-      dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-        val context = LocalContext.current
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-      }
-
-      darkTheme -> DarkColorScheme
-      else -> LightColorScheme
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
     }
 
-  MaterialTheme(colorScheme = colorScheme, typography = Typography, shapes = AppShapes, content = content)
+    MaterialTheme(colorScheme = colorScheme, typography = Typography, shapes = AppShapes, content = content)
 }

@@ -15,23 +15,53 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.compose.material3.Shapes
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFBB86FC),
-    secondary = Color(0xFF03DAC5),
-    tertiary = Color(0xFF3700B3)
+    primary = AccentIndigo,
+    secondary = AccentPurple,
+    tertiary = AccentBlue,
+    background = BgDark,
+    surface = BgDark,
+    surfaceVariant = GlassDark.copy(alpha = 0.2f),
+    onPrimary = TextPrimaryDark,
+    onSecondary = TextPrimaryDark,
+    onTertiary = TextPrimaryDark,
+    onBackground = TextPrimaryDark,
+    onSurface = TextPrimaryDark,
+    onSurfaceVariant = TextSecondaryDark,
+    outline = GlassWhite.copy(alpha = 0.15f)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF6200EE),
-    secondary = Color(0xFF03DAC5),
-    tertiary = Color(0xFF3700B3)
+    primary = AccentIndigo,
+    secondary = AccentPurple,
+    tertiary = AccentBlue,
+    background = BgLight,
+    surface = BgLight,
+    surfaceVariant = GlassWhite.copy(alpha = 0.8f),
+    onPrimary = TextPrimaryDark,
+    onSecondary = TextPrimaryDark,
+    onTertiary = TextPrimaryDark,
+    onBackground = TextPrimaryLight,
+    onSurface = TextPrimaryLight,
+    onSurfaceVariant = TextSecondaryLight,
+    outline = GlassDark.copy(alpha = 0.15f)
+)
+
+private val AppShapes = Shapes(
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(20.dp),
+    large = RoundedCornerShape(26.dp),
+    extraLarge = RoundedCornerShape(32.dp)
 )
 
 @Composable
 fun AIModelAggregatorTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -59,6 +89,7 @@ fun AIModelAggregatorTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = AppShapes,
         content = content
     )
 }

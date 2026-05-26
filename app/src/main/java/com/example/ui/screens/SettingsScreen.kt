@@ -7,12 +7,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.ProviderType
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassSurface
 import com.example.ui.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,31 +29,49 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        containerColor = Color.Transparent,
         topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent
-                ),
-                title = { Text("Settings") },
-                navigationIcon = {
+            GlassSurface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .statusBarsPadding(),
+                shape = MaterialTheme.shapes.large
+            ) {
+                Row(
+                    modifier = Modifier.padding(8.dp).fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
+                    Text(
+                        "Settings", 
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
                 }
-            )
+            }
         }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(16.dp),
+                .fillMaxSize(),
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding() + 8.dp,
+                bottom = innerPadding.calculateBottomPadding() + 16.dp,
+                start = 16.dp,
+                end = 16.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Text("API Keys", style = MaterialTheme.typography.titleLarge)
-                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "API Keys", 
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(4.dp))
             }
             items(uiState.apiKeysStatus) { status ->
                 ApiKeyManagementItem(
@@ -60,15 +82,22 @@ fun SettingsScreen(
                 )
             }
             item {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                Text("Models", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "Models", 
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onNavigateToModels,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                    )
                 ) {
-                    Text("Manage Provider Models")
+                    Text("Manage Provider Models", style = MaterialTheme.typography.titleMedium)
                 }
             }
         }
@@ -85,17 +114,25 @@ fun ApiKeyManagementItem(
     var keyInput by remember { mutableStateOf("") }
     var showKey by remember { mutableStateOf(false) }
 
-    Card(
+    GlassCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large
+        shape = MaterialTheme.shapes.large,
+        elevation = 2.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = provider.name, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = provider.name, 
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             if (hasKey) {
-                Text("Key is saved.", color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = onDelete) {
-                    Text("Remove Key")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Ready", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+                    Spacer(modifier = Modifier.weight(1f))
+                    TextButton(onClick = onDelete) {
+                        Text("Remove Key", color = MaterialTheme.colorScheme.error)
+                    }
                 }
             } else {
                 OutlinedTextField(
@@ -103,17 +140,25 @@ fun ApiKeyManagementItem(
                     onValueChange = { keyInput = it },
                     label = { Text("API Key") },
                     visualTransformation = if (showKey) VisualTransformation.None else PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium
                 )
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp), 
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     TextButton(onClick = { showKey = !showKey }) {
                         Text(if (showKey) "Hide" else "Show")
                     }
-                    Button(onClick = {
-                        onSave(keyInput)
-                        keyInput = ""
-                    }) {
-                        Text("Save")
+                    Button(
+                        onClick = {
+                            onSave(keyInput)
+                            keyInput = ""
+                        },
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text("Save Key")
                     }
                 }
             }

@@ -1,7 +1,13 @@
 package com.example.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
@@ -20,13 +27,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.ChatMessage
 import com.example.domain.model.MessageRole
 import com.example.domain.model.ProviderType
+import com.example.ui.components.GlassCard
+import com.example.ui.components.GlassSurface
 import com.example.ui.viewmodel.ChatViewModel
-import io.noties.markwon.Markwon
 import androidx.compose.ui.viewinterop.AndroidView
 import android.widget.TextView
 
@@ -47,32 +58,41 @@ fun ChatScreen(
     }
 
     Scaffold(
-        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        containerColor = Color.Transparent,
         topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent
-                ),
-                title = {
-                    ProviderModelDropdown(
-                        selectedProvider = uiState.activeProvider,
-                        selectedModelId = uiState.activeModelId,
-                        availableProviders = uiState.availableProviders,
-                        models = uiState.models,
-                        onSelectionChanged = { p, m -> viewModel.selectProviderModel(p, m) }
-                    )
-                },
-                navigationIcon = {
+            GlassSurface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(onClick = onOpenDrawer) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
-                },
-                actions = {
+                    
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        ProviderModelDropdown(
+                            selectedProvider = uiState.activeProvider,
+                            selectedModelId = uiState.activeModelId,
+                            availableProviders = uiState.availableProviders,
+                            models = uiState.models,
+                            onSelectionChanged = { p, m -> viewModel.selectProviderModel(p, m) }
+                        )
+                    }
+
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 }
-            )
+            }
         },
         bottomBar = {
             ChatComposer(
@@ -87,13 +107,17 @@ fun ChatScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
         ) {
             LazyColumn(
                 state = listState,
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 8.dp),
+                contentPadding = PaddingValues(
+                    top = innerPadding.calculateTopPadding() + 8.dp,
+                    bottom = innerPadding.calculateBottomPadding() + 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(uiState.messages, key = { it.id }) { msg ->
                     ChatMessageItem(message = msg)
@@ -113,39 +137,56 @@ fun ProviderModelDropdown(
     onSelectionChanged: (ProviderType, String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-
     val selectedModelName = models.find { it.providerType == selectedProvider && it.modelId == selectedModelId }?.displayName ?: selectedModelId
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        OutlinedTextField(
-            value = "${selectedProvider.name} - $selectedModelName",
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor(),
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                focusedBorderColor = MaterialTheme.colorScheme.surface,
-                unfocusedBorderColor = MaterialTheme.colorScheme.surface
-            )
-        )
-        ExposedDropdownMenu(
+    Box {
+        Surface(
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .clickable { expanded = true }
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp)
+                )
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "${selectedProvider.name} • $selectedModelName",
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Icon(
+                    Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+
+        DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             availableProviders.forEach { provider ->
                 val providerModels = models.filter { it.providerType == provider }
                 if (providerModels.isNotEmpty()) {
                     DropdownMenuItem(
-                        text = { Text(provider.name, style = MaterialTheme.typography.labelSmall) },
+                        text = { Text(provider.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary) },
                         onClick = { },
                         enabled = false
                     )
                     providerModels.forEach { model ->
                         DropdownMenuItem(
-                            text = { Text(model.displayName) },
+                            text = { Text(model.displayName, style = MaterialTheme.typography.bodyMedium) },
                             onClick = {
                                 onSelectionChanged(provider, model.modelId)
                                 expanded = false
@@ -166,63 +207,71 @@ fun ChatComposer(
     onSend: () -> Unit,
     onStop: () -> Unit
 ) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 2.dp,
-        modifier = Modifier.fillMaxWidth()
+    GlassSurface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .imePadding()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        shape = RoundedCornerShape(28.dp)
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .navigationBarsPadding()
-                .imePadding(),
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
+            TextField(
                 value = text,
                 onValueChange = onTextChanged,
-                placeholder = { Text("Message AI...") },
+                placeholder = { Text("Ask anything...", style = MaterialTheme.typography.bodyLarge) },
                 modifier = Modifier
                     .weight(1f)
-                    .defaultMinSize(minHeight = 48.dp),
-                shape = CircleShape,
-                maxLines = 5,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                )
+                    .defaultMinSize(minHeight = 44.dp),
+                shape = RoundedCornerShape(24.dp),
+                maxLines = 6,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                ),
+                textStyle = MaterialTheme.typography.bodyLarge
             )
 
-            if (isStreaming) {
-                IconButton(
-                    onClick = onStop,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(MaterialTheme.colorScheme.error, CircleShape)
-                ) {
-                    Icon(
-                        Icons.Default.Stop,
-                        contentDescription = "Stop",
-                        tint = MaterialTheme.colorScheme.onError
-                    )
-                }
-            } else {
-                IconButton(
-                    onClick = onSend,
-                    enabled = text.isNotBlank(),
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            if (text.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                            CircleShape
+            AnimatedVisibility(
+                visible = isStreaming || text.isNotBlank(),
+                enter = fadeIn() + slideInVertically(initialOffsetY = { 20 }),
+                exit = fadeOut()
+            ) {
+                if (isStreaming) {
+                    IconButton(
+                        onClick = onStop,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(MaterialTheme.colorScheme.errorContainer, CircleShape)
+                    ) {
+                        Icon(
+                            Icons.Default.Stop,
+                            contentDescription = "Stop",
+                            tint = MaterialTheme.colorScheme.onErrorContainer
                         )
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Send",
-                        tint = if (text.isNotBlank()) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    }
+                } else {
+                    IconButton(
+                        onClick = onSend,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .background(MaterialTheme.colorScheme.primary, CircleShape)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Send",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                 }
             }
         }
@@ -233,22 +282,30 @@ fun ChatComposer(
 fun ChatMessageItem(message: ChatMessage) {
     val isUser = message.role == MessageRole.USER
     val alignment = if (isUser) Alignment.End else Alignment.Start
-    val bgColor = if (isUser) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-    val textColor = if (isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+    val bgColor = if (isUser) MaterialTheme.colorScheme.primary.copy(alpha = 0.9f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+    val textColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp),
         horizontalAlignment = alignment
     ) {
-        Surface(
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = if(isUser) 24.dp else 4.dp, bottomEnd = if(isUser) 4.dp else 24.dp),
-            color = bgColor,
-            shadowElevation = 2.dp,
-            modifier = Modifier.widthIn(max = 340.dp)
+        GlassCard(
+            shape = RoundedCornerShape(
+                topStart = 24.dp,
+                topEnd = 24.dp,
+                bottomStart = if(isUser) 24.dp else 4.dp,
+                bottomEnd = if(isUser) 4.dp else 24.dp
+            ),
+            modifier = Modifier.widthIn(max = 340.dp),
+            elevation = 1.dp
         ) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(
+                modifier = Modifier
+                    .background(bgColor)
+                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
+            ) {
                 if (message.errorMessage != null) {
                     Row(
                         modifier = Modifier.padding(bottom = 4.dp),
@@ -262,7 +319,7 @@ fun ChatMessageItem(message: ChatMessage) {
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Error",
+                            text = "Error generating response",
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.labelMedium
                         )
@@ -274,31 +331,36 @@ fun ChatMessageItem(message: ChatMessage) {
                     )
                 } else {
                     if (isUser) {
-                        Text(text = message.content, color = textColor)
+                        Text(
+                            text = message.content,
+                            color = textColor,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(bottom = 2.dp)
+                        )
                     } else {
                         MarkdownText(text = message.content, color = textColor)
                     }
                 }
                 
                 // Metadata footer for assistant
-                if (!isUser && message.errorMessage == null && !message.isStreaming) {
+                if (!isUser && message.errorMessage == null && !message.isStreaming && message.content.isNotEmpty()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.End,
+                            .padding(top = 10.dp),
+                        horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val genTime = message.generationTimeMs?.let { "${it / 1000.0}s" }
-                        val tokens = message.tokenCount?.let { "$it tokens" }
-                        val model = message.modelIdUsed?.let { it.take(15) }
+                        val tokens = message.tokenCount?.let { "$it tok" }
+                        val model = message.modelIdUsed?.take(12)
                         
                         val metaList = listOfNotNull(model, genTime, tokens)
                         if (metaList.isNotEmpty()) {
                             Text(
                                 text = metaList.joinToString(" • "),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = textColor.copy(alpha = 0.6f)
+                                style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp),
+                                color = textColor.copy(alpha = 0.5f)
                             )
                         }
                     }
