@@ -30,16 +30,13 @@ fun AdvancedChatComposer(
     onSend: () -> Unit,
     onStop: () -> Unit
 ) {
-    Surface(
+    GlassSurface(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .imePadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-        tonalElevation = 2.dp,
-        shadowElevation = 4.dp
+        shape = RoundedCornerShape(28.dp)
     ) {
         Column(
             modifier = Modifier

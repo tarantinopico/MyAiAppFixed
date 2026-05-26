@@ -61,19 +61,36 @@ fun ChatScreen(
         isStreaming = uiState.isStreaming
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val bgGlow1 = androidx.compose.ui.graphics.Brush.radialGradient(
+        colors = listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), Color.Transparent),
+        center = androidx.compose.ui.geometry.Offset(0f, 0f),
+        radius = 1200f
+    )
+    val bgGlow2 = androidx.compose.ui.graphics.Brush.radialGradient(
+        colors = listOf(MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f), Color.Transparent),
+        center = androidx.compose.ui.geometry.Offset(1000f, 2000f),
+        radius = 1500f
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Glow layer 1
+        Box(modifier = Modifier.fillMaxSize().background(bgGlow1))
+        // Glow layer 2
+        Box(modifier = Modifier.fillMaxSize().background(bgGlow2))
+        
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                Surface(
+                com.example.ui.components.GlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-                    tonalElevation = 2.dp,
-                    shadowElevation = 2.dp
+                    shape = RoundedCornerShape(24.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -280,8 +297,11 @@ fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.mod
 
     val isUser = message.role == MessageRole.USER
     val alignment = if (isUser) Alignment.End else Alignment.Start
-    val bgColor = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
     val textColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+
+    val userGradient = androidx.compose.ui.graphics.Brush.linearGradient(
+        colors = listOf(com.example.ui.theme.GradientStart, com.example.ui.theme.GradientEnd)
+    )
 
     Column(
         modifier = Modifier
@@ -294,7 +314,6 @@ fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.mod
                 modifier = Modifier.padding(bottom = 6.dp, start = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // simple avatar representation
                 Box(
                     modifier = Modifier.size(24.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                     contentAlignment = Alignment.Center
@@ -306,73 +325,87 @@ fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.mod
             }
         }
 
-        GlassCard(
-            shape = RoundedCornerShape(
-                topStart = if(isUser) 24.dp else 4.dp,
-                topEnd = if(isUser) 4.dp else 24.dp,
-                bottomStart = 24.dp,
-                bottomEnd = 24.dp
-            ),
-            modifier = Modifier.widthIn(max = 340.dp),
-            elevation = 1.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .background(bgColor)
-                    .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
+        val cardShape = RoundedCornerShape(
+            topStart = if(isUser) 24.dp else 4.dp,
+            topEnd = if(isUser) 4.dp else 24.dp,
+            bottomStart = 24.dp,
+            bottomEnd = 24.dp
+        )
+
+        if (isUser) {
+            Surface(
+                shape = cardShape,
+                color = Color.Transparent,
+                modifier = Modifier.widthIn(max = 340.dp)
             ) {
-                if (message.errorMessage != null) {
+                Column(
+                    modifier = Modifier
+                        .background(userGradient)
+                        .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
+                ) {
                     Row(
-                        modifier = Modifier.padding(bottom = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = "Error",
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Error generating response",
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelMedium
+                            text = message.content,
+                            color = textColor,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f).padding(bottom = 2.dp)
                         )
-                    }
-                    Text(
-                        text = message.errorMessage ?: "",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                } else if (message.isStreaming && message.content.isEmpty()) {
-                    com.example.ui.components.AnimatedTypingIndicator(modifier = Modifier.padding(vertical = 4.dp))
-                } else {
-                    if (isUser) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Top
+                        
+                        val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+                        IconButton(
+                            onClick = { clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content)) },
+                            modifier = Modifier.size(24.dp).padding(start = 8.dp, top = 2.dp)
                         ) {
-                            Text(
-                                text = message.content,
-                                color = textColor,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f).padding(bottom = 2.dp)
+                            Icon(
+                                Icons.Default.ContentCopy,
+                                contentDescription = "Copy",
+                                tint = textColor.copy(alpha = 0.5f),
+                                modifier = Modifier.size(16.dp)
                             )
-                            
-                            val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
-                            IconButton(
-                                onClick = { clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content)) },
-                                modifier = Modifier.size(24.dp).padding(start = 8.dp, top = 2.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.ContentCopy,
-                                    contentDescription = "Copy",
-                                    tint = textColor.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
                         }
+                    }
+                }
+            }
+        } else {
+            GlassCard(
+                shape = cardShape,
+                modifier = Modifier.widthIn(max = 340.dp),
+                elevation = 1.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
+                        .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
+                ) {
+                    if (message.errorMessage != null) {
+                        Row(
+                            modifier = Modifier.padding(bottom = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Error",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Error generating response",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                        Text(
+                            text = message.errorMessage ?: "",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    } else if (message.isStreaming && message.content.isEmpty()) {
+                        com.example.ui.components.AnimatedTypingIndicator(modifier = Modifier.padding(vertical = 4.dp))
                     } else {
                         com.example.ui.components.PremiumMarkdownRenderer(
                             markdown = message.content,
@@ -398,45 +431,45 @@ fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.mod
                             }
                         }
                     }
-                }
-                
-                // Metadata footer for assistant
-                if (!isUser && message.errorMessage == null && !message.isStreaming && message.content.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            val context = androidx.compose.ui.platform.LocalContext.current
-                            val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
-                            IconButton(
-                                onClick = {
-                                    clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content))
-                                },
-                                modifier = Modifier.size(24.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.ContentCopy,
-                                    contentDescription = "Copy",
-                                    tint = textColor.copy(alpha = 0.6f),
-                                    modifier = Modifier.size(16.dp)
+                    
+                    // Metadata footer for assistant
+                    if (message.errorMessage == null && !message.isStreaming && message.content.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                val context = androidx.compose.ui.platform.LocalContext.current
+                                val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+                                IconButton(
+                                    onClick = {
+                                        clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content))
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.ContentCopy,
+                                        contentDescription = "Copy",
+                                        tint = textColor.copy(alpha = 0.6f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                            
+                            val genTime = message.generationTimeMs?.let { "${String.format(java.util.Locale.US, "%.1f", it / 1000.0)}s" }
+                            val tokens = message.tokenCount?.let { "$it tok" }
+                            
+                            val metaList = listOfNotNull(genTime, tokens)
+                            if (metaList.isNotEmpty()) {
+                                Text(
+                                    text = metaList.joinToString(" • "),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = textColor.copy(alpha = 0.65f)
                                 )
                             }
-                        }
-                        
-                        val genTime = message.generationTimeMs?.let { "${String.format(java.util.Locale.US, "%.1f", it / 1000.0)}s" }
-                        val tokens = message.tokenCount?.let { "$it tok" }
-                        
-                        val metaList = listOfNotNull(genTime, tokens)
-                        if (metaList.isNotEmpty()) {
-                            Text(
-                                text = metaList.joinToString(" • "),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = textColor.copy(alpha = 0.65f)
-                            )
                         }
                     }
                 }

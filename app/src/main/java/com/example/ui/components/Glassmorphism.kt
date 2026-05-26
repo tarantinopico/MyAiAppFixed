@@ -27,14 +27,14 @@ fun GlassCard(
 ) {
     Box(
         modifier = modifier
-            .shadow(elevation = elevation, shape = shape, spotColor = Color.Black.copy(alpha = 0.5f))
+            .shadow(elevation = elevation, shape = shape, spotColor = Color.Black.copy(alpha = 0.2f))
             .clip(shape)
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f)
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
             )
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                 shape = shape
             )
     ) {
@@ -51,10 +51,10 @@ fun GlassSurface(
     Box(
         modifier = modifier
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.65f))
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                 shape = shape
             )
     ) {

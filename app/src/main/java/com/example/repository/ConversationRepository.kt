@@ -31,6 +31,10 @@ class ConversationRepository(
         return messageDao.getMessages(conversationId).map { list -> list.map { it.toDomain() } }
     }
 
+    suspend fun getMessagesSync(conversationId: Long): List<ChatMessage> {
+        return messageDao.getMessagesSync(conversationId).map { it.toDomain() }
+    }
+
     fun searchConversations(query: String): Flow<List<ChatConversation>> {
         return conversationDao.searchConversations(query).map { list -> list.map { it.toDomain() } }
     }

@@ -20,9 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AccentIndigo,
-    secondary = AccentPurple,
-    tertiary = AccentBlue,
+    primary = AccentBlueDark,
+    secondary = AccentPurpleDark,
+    tertiary = AccentTealDark,
     background = BgDark,
     surface = BgDarkSurface,
     surfaceVariant = BgDarkSurfaceVariant,
@@ -37,9 +37,9 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = AccentIndigo,
+    primary = AccentBlue,
     secondary = AccentPurple,
-    tertiary = AccentBlue,
+    tertiary = AccentTeal,
     background = BgLight,
     surface = BgLightSurface,
     surfaceVariant = BgLightSurfaceVariant,

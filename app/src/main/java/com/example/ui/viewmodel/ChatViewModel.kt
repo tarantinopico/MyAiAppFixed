@@ -219,7 +219,7 @@ class ChatViewModel(
     private fun streamResponse(convId: Long, assistantMsgId: Long, provider: ProviderType, model: String) {
         streamJob?.cancel()
         streamJob = viewModelScope.launch {
-            val history = _uiState.value.messages.filter { !it.isStreaming && it.errorMessage == null }
+            val history = conversationRepository.getMessagesSync(convId).filter { !it.isStreaming && it.errorMessage == null }
             val isAgentMode = _uiState.value.isAgentModeEnabled
             
             _uiState.update { it.copy(isStreaming = true) }

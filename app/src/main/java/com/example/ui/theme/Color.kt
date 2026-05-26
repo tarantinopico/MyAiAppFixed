@@ -2,31 +2,36 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Premium Deep Graphite Backgrounds
-val BgDark = Color(0xFF0F0F11) // Deeper graphite
-val BgDarkSurface = Color(0xFF18181A) // Slightly elevated
-val BgDarkSurfaceVariant = Color(0xFF222225) // Elevated cards
-val BgLight = Color(0xFFF9F9FB)
+// iOS Style Pure Black / White Backgrounds
+val BgDark = Color(0xFF000000)
+val BgDarkSurface = Color(0xFF1C1C1E) 
+val BgDarkSurfaceVariant = Color(0xFF2C2C2E)
+val BgLight = Color(0xFFF2F2F7)
 val BgLightSurface = Color(0xFFFFFFFF)
-val BgLightSurfaceVariant = Color(0xFFF2F2F7)
+val BgLightSurfaceVariant = Color(0xFFE5E5EA)
 
-// Premium Accents (Soft Indigo / Muted Blue)
-val AccentIndigo = Color(0xFF6B66FF)
-val AccentPurple = Color(0xFFA166FF)
-val AccentBlue = Color(0xFF3388FF)
-val AccentTeal = Color(0xFF33C2FF)
+// iOS Accents
+val AccentBlue = Color(0xFF007AFF)
+val AccentBlueDark = Color(0xFF0A84FF)
+val AccentPurple = Color(0xFFAF52DE)
+val AccentPurpleDark = Color(0xFFBF5AF2)
+val AccentTeal = Color(0xFF5AC8FA)
+val AccentTealDark = Color(0xFF64D2FF)
 
-// Glass Highlights
-val GlassWhite = Color(0xFFFFFFFF)
-val GlassDark = Color(0xFFEBEBF5)
+// gradients definition colors
+val GradientStart = Color(0xFF2E62FF)
+val GradientEnd = Color(0xFF0A84FF)
+val GradientStartDark = Color(0xFF64D2FF)
+val GradientEndDark = Color(0xFF0A84FF)
 
-// Typography (Neutral & Readable)
+// Typography
 val TextPrimaryDark = Color(0xFFFFFFFF)
-val TextSecondaryDark = Color(0xA6EBEBF5) // 65% opacity
-val TextTertiaryDark = Color(0x66EBEBF5) // 40% opacity 
-val TextPrimaryLight = Color(0xFF111113)
-val TextSecondaryLight = Color(0x99111113)
-val TextTertiaryLight = Color(0x66111113)
+val TextSecondaryDark = Color(0x99EBEBF5) 
+val TextTertiaryDark = Color(0x4DEBEBF5)  
+val TextPrimaryLight = Color(0xFF000000)
+val TextSecondaryLight = Color(0x993C3C43)
+val TextTertiaryLight = Color(0x4D3C3C43)
 
-val OutlineColorDark = Color(0x26EBEBF5) // 15% opacity
-val OutlineColorLight = Color(0x1A111113) // 10% opacity
+val OutlineColorDark = Color(0x33EBEBF5) 
+val OutlineColorLight = Color(0x333C3C43) 
+

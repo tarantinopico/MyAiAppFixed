@@ -14,9 +14,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AccentIndigo,
-    secondary = AccentPurple,
-    tertiary = AccentBlue,
+    primary = AccentBlueDark,
+    secondary = AccentPurpleDark,
+    tertiary = AccentTealDark,
     background = BgDark,
     surface = BgDarkSurface,
     surfaceVariant = BgDarkSurfaceVariant,
@@ -31,9 +31,9 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = AccentIndigo,
+    primary = AccentBlue,
     secondary = AccentPurple,
-    tertiary = AccentBlue,
+    tertiary = AccentTeal,
     background = BgLight,
     surface = BgLightSurface,
     surfaceVariant = BgLightSurfaceVariant,
@@ -48,10 +48,10 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val AppShapes = Shapes(
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(26.dp),
-    extraLarge = RoundedCornerShape(32.dp)
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(22.dp),
+    large = RoundedCornerShape(28.dp),
+    extraLarge = RoundedCornerShape(36.dp)
 )
 
 @Composable
