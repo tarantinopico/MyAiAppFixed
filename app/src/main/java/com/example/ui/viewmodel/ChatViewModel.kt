@@ -19,7 +19,9 @@ data class ChatUiState(
     val activeProvider: ProviderType = ProviderType.GROQ,
     val activeModelId: String = "",
     val availableProviders: List<ProviderType> = ProviderType.entries.toList(),
-    val models: List<ProviderModel> = emptyList()
+    val models: List<ProviderModel> = emptyList(),
+    val isAgentModeEnabled: Boolean = false,
+    val selectedFileToPreview: GeneratedFile? = null
 )
 
 class ChatViewModel(
@@ -111,6 +113,14 @@ class ChatViewModel(
         }
     }
 
+    fun setAgentMode(enabled: Boolean) {
+        _uiState.update { it.copy(isAgentModeEnabled = enabled) }
+    }
+    
+    fun setPreviewFile(file: GeneratedFile?) {
+        _uiState.update { it.copy(selectedFileToPreview = file) }
+    }
+
     fun onInputChanged(text: String) {
         _uiState.update { it.copy(currentInput = text) }
         val conv = _uiState.value.conversation
@@ -167,6 +177,7 @@ class ChatViewModel(
         streamJob?.cancel()
         streamJob = viewModelScope.launch {
             val history = _uiState.value.messages.filter { !it.isStreaming && it.errorMessage == null }
+            val isAgentMode = _uiState.value.isAgentModeEnabled
             
             _uiState.update { it.copy(isStreaming = true) }
             
@@ -175,24 +186,48 @@ class ChatViewModel(
             var tokenCount: Int? = null
             val startTimeMs = System.currentTimeMillis()
             var endTimeMs: Long? = null
+            var systemEventToSave: SystemEvent? = null
 
-            chatRepository.sendMessageStream(convId, provider, model, history).collect { event ->
+            chatRepository.sendMessageStream(convId, provider, model, history, isAgentMode).collect { event ->
                 when(event) {
                     is ChatStreamEvent.Started -> {}
                     is ChatStreamEvent.Delta -> {
                         currentContent += event.text
-                        // In a real app we'd debounce DB updates, but for simplicity we update frequently
+                        // Check for complete files
+                        if (isAgentMode && currentContent.contains("</file>")) {
+                            parseFiles(currentContent)?.let { files ->
+                                systemEventToSave = SystemEvent(
+                                    type = EventType.FILE_GENERATION,
+                                    message = "Agent generated ${files.size} file(s)",
+                                    files = files
+                                )
+                            }
+                        }
+                        
                         conversationRepository.updateMessage(
-                            ChatMessage(id = assistantMsgId, conversationId = convId, role = MessageRole.ASSISTANT, content = currentContent, isStreaming = true)
+                            ChatMessage(id = assistantMsgId, conversationId = convId, role = MessageRole.ASSISTANT, content = cleanupContent(currentContent), isStreaming = true, systemEvent = systemEventToSave)
                         )
                     }
                     is ChatStreamEvent.Completed -> {
                         currentContent = event.text
+                        if (isAgentMode) {
+                             parseFiles(currentContent)?.let { files ->
+                                systemEventToSave = SystemEvent(
+                                    type = EventType.FILE_GENERATION,
+                                    message = "Agent generated ${files.size} file(s)",
+                                    files = files
+                                )
+                            }
+                        }
                         tokenCount = event.usageTokens
                         endTimeMs = System.currentTimeMillis()
                     }
                     is ChatStreamEvent.SystemMessage -> {
                         val sysMsg = ChatMessage(conversationId = convId, role = MessageRole.SYSTEM, content = event.message)
+                        conversationRepository.insertMessage(sysMsg)
+                    }
+                    is ChatStreamEvent.AgentEvent -> {
+                        val sysMsg = ChatMessage(conversationId = convId, role = MessageRole.SYSTEM, content = event.systemEvent.message, systemEvent = event.systemEvent)
                         conversationRepository.insertMessage(sysMsg)
                     }
                     is ChatStreamEvent.Error -> {
@@ -210,16 +245,38 @@ class ChatViewModel(
                 id = assistantMsgId,
                 conversationId = convId,
                 role = MessageRole.ASSISTANT,
-                content = currentContent,
+                content = cleanupContent(currentContent),
                 isStreaming = false,
                 errorMessage = errorMessage,
                 generationTimeMs = durationMs,
                 tokenCount = tokenCount,
-                modelIdUsed = model
+                modelIdUsed = model,
+                systemEvent = systemEventToSave
             )
             conversationRepository.updateMessage(finalMsg)
             _uiState.update { it.copy(isStreaming = false) }
         }
+    }
+    
+    private fun parseFiles(content: String): List<GeneratedFile>? {
+        val fileRegex = "<file\\s+name=\"([^\"]+)\">(.*?)</file>".toRegex(RegexOption.DOT_MATCHES_ALL)
+        val matches = fileRegex.findAll(content)
+        val files = matches.mapIndexed { index, matchResult ->
+            val name = matchResult.groupValues[1]
+            val code = matchResult.groupValues[2].trim()
+            val format = name.substringAfterLast('.', "")
+            GeneratedFile(
+                id = "file-$index",
+                name = name,
+                format = format,
+                content = code
+            )
+        }.toList()
+        return if (files.isNotEmpty()) files else null
+    }
+    
+    private fun cleanupContent(content: String): String {
+        return content.replace("<file\\s+name=\"([^\"]+)\">(.*?)</file>".toRegex(RegexOption.DOT_MATCHES_ALL), "").trim()
     }
     
     fun stopStreaming() {

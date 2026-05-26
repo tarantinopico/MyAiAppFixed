@@ -13,7 +13,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         MessageEntity::class,
         ApiKeyEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -45,6 +45,11 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL(
                     "CREATE TABLE IF NOT EXISTS `api_keys` (`id` TEXT NOT NULL, `provider` TEXT NOT NULL, `label` TEXT NOT NULL, `isEnabled` INTEGER NOT NULL, `isPreferred` INTEGER NOT NULL, `addedAt` INTEGER NOT NULL, `lastUsedAt` INTEGER, `failureCount` INTEGER NOT NULL, PRIMARY KEY(`id`))"
                 )
+            }
+        }
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE messages ADD COLUMN systemEventJson TEXT")
             }
         }
     }

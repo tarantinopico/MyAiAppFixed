@@ -24,6 +24,8 @@ import com.example.ui.components.GlassSurface
 fun AdvancedChatComposer(
     text: String,
     isStreaming: Boolean,
+    isAgentModeEnabled: Boolean,
+    onAgentModeChanged: (Boolean) -> Unit,
     onTextChanged: (String) -> Unit,
     onSend: () -> Unit,
     onStop: () -> Unit
@@ -44,6 +46,26 @@ fun AdvancedChatComposer(
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 4.dp)
         ) {
+            // Agent Mode Toggle Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = if (isAgentModeEnabled) "✨ Agent Mode Active" else "Chat Mode",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isAgentModeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+                Switch(
+                    checked = isAgentModeEnabled,
+                    onCheckedChange = onAgentModeChanged,
+                    modifier = Modifier.height(24.dp)
+                )
+            }
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom,

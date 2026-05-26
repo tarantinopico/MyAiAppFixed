@@ -42,6 +42,8 @@ import com.example.ui.viewmodel.ChatViewModel
 import androidx.compose.ui.viewinterop.AndroidView
 import android.widget.TextView
 
+import androidx.activity.compose.BackHandler
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
@@ -58,86 +60,112 @@ fun ChatScreen(
         }
     }
 
-    Scaffold(
-        containerColor = Color.Transparent,
-        topBar = {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-                tonalElevation = 2.dp,
-                shadowElevation = 2.dp
-            ) {
-                Row(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .statusBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
+                    tonalElevation = 2.dp,
+                    shadowElevation = 2.dp
                 ) {
-                    IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onOpenDrawer) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                        
+                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            ProviderModelDropdown(
+                                selectedProvider = uiState.activeProvider,
+                                selectedModelId = uiState.activeModelId,
+                                availableProviders = uiState.availableProviders,
+                                models = uiState.models,
+                                onSelectionChanged = { p, m -> viewModel.selectProviderModel(p, m) }
+                            )
+                        }
+
+                        IconButton(onClick = onNavigateToSettings) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        }
                     }
-                    
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        ProviderModelDropdown(
-                            selectedProvider = uiState.activeProvider,
-                            selectedModelId = uiState.activeModelId,
-                            availableProviders = uiState.availableProviders,
-                            models = uiState.models,
-                            onSelectionChanged = { p, m -> viewModel.selectProviderModel(p, m) }
+                }
+            },
+            bottomBar = {
+                AdvancedChatComposer(
+                    text = uiState.currentInput,
+                    isStreaming = uiState.isStreaming,
+                    isAgentModeEnabled = uiState.isAgentModeEnabled,
+                    onAgentModeChanged = { viewModel.setAgentMode(it) },
+                    onTextChanged = { viewModel.onInputChanged(it) },
+                    onSend = { viewModel.sendMessage() },
+                    onStop = { viewModel.stopStreaming() }
+                )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                if (uiState.messages.isEmpty()) {
+                    Box(modifier = Modifier.weight(1f).padding(innerPadding)) {
+                        com.example.ui.components.EmptyChatState(
+                            provider = uiState.activeProvider,
+                            onSuggestionClick = { suggestion ->
+                                viewModel.onInputChanged(suggestion)
+                                viewModel.sendMessage()
+                            }
                         )
                     }
-
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 8.dp),
+                        contentPadding = PaddingValues(
+                            top = innerPadding.calculateTopPadding() + 8.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 16.dp
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(uiState.messages, key = { it.id }) { msg ->
+                            ChatMessageItem(
+                                message = msg,
+                                onPreviewFile = { file -> 
+                                    viewModel.setPreviewFile(file)
+                                }
+                            )
+                        }
                     }
                 }
             }
-        },
-        bottomBar = {
-            AdvancedChatComposer(
-                text = uiState.currentInput,
-                isStreaming = uiState.isStreaming,
-                onTextChanged = { viewModel.onInputChanged(it) },
-                onSend = { viewModel.sendMessage() },
-                onStop = { viewModel.stopStreaming() }
-            )
         }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+        
+        AnimatedVisibility(
+            visible = uiState.selectedFileToPreview != null,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            modifier = Modifier.fillMaxSize()
         ) {
-            if (uiState.messages.isEmpty()) {
-                Box(modifier = Modifier.weight(1f).padding(innerPadding)) {
-                    com.example.ui.components.EmptyChatState(
-                        provider = uiState.activeProvider,
-                        onSuggestionClick = { suggestion ->
-                            viewModel.onInputChanged(suggestion)
-                            viewModel.sendMessage()
-                        }
-                    )
+            uiState.selectedFileToPreview?.let { file ->
+                BackHandler {
+                    viewModel.setPreviewFile(null)
                 }
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp),
-                    contentPadding = PaddingValues(
-                        top = innerPadding.calculateTopPadding() + 8.dp,
-                        bottom = innerPadding.calculateBottomPadding() + 16.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(uiState.messages, key = { it.id }) { msg ->
-                        ChatMessageItem(message = msg)
-                    }
-                }
+                FilePreviewScreen(
+                    file = file,
+                    onBack = { viewModel.setPreviewFile(null) }
+                )
             }
         }
     }
@@ -214,9 +242,9 @@ fun ProviderModelDropdown(
 
 
 @Composable
-fun ChatMessageItem(message: ChatMessage) {
+fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.model.GeneratedFile) -> Unit) {
     if (message.role == MessageRole.SYSTEM) {
-        SystemMessageItem(message)
+        SystemMessageItem(message, onPreviewFile)
         return
     }
 
@@ -301,6 +329,20 @@ fun ChatMessageItem(message: ChatMessage) {
                             markdown = message.content,
                             textColor = textColor
                         )
+                        
+                        if (message.systemEvent != null && message.systemEvent.files.isNotEmpty()) {
+                            if (message.content.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+                            message.systemEvent.files.forEach { file ->
+                                com.example.ui.components.GeneratedFileCard(
+                                    file = file,
+                                    onPreview = { onPreviewFile(file) },
+                                    onDownload = {}
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
                     }
                 }
                 
@@ -350,33 +392,40 @@ fun ChatMessageItem(message: ChatMessage) {
 }
 
 @Composable
-fun SystemMessageItem(message: ChatMessage) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(
-            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
-            shape = RoundedCornerShape(16.dp)
+fun SystemMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.model.GeneratedFile) -> Unit) {
+    if (message.systemEvent != null) {
+        com.example.ui.components.SystemEventItem(
+            event = message.systemEvent, 
+            onPreviewFile = onPreviewFile
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Icon(
-                    Icons.Default.Stop, // Will replace with Info/Check later if needed
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Stop, // Will replace with Info/Check later if needed
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = message.content,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.example.domain.model
 
+import com.squareup.moshi.JsonClass
+
 data class ProviderModel(
     val id: Long = 0,
     val providerType: ProviderType,
@@ -36,5 +38,26 @@ data class ChatMessage(
     val errorMessage: String? = null,
     val generationTimeMs: Long? = null,
     val tokenCount: Int? = null,
-    val modelIdUsed: String? = null
+    val modelIdUsed: String? = null,
+    val systemEvent: SystemEvent? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class GeneratedFile(
+    val id: String,
+    val name: String,
+    val format: String,
+    val content: String,
+    val path: String? = null
+)
+
+enum class EventType {
+    INFO, TOOL_CALL, FILE_GENERATION, WORKFLOW_START, WORKFLOW_END, ERROR
+}
+
+@JsonClass(generateAdapter = true)
+data class SystemEvent(
+    val type: EventType,
+    val message: String,
+    val files: List<GeneratedFile> = emptyList()
 )

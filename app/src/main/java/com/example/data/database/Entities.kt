@@ -40,7 +40,8 @@ data class MessageEntity(
     val errorMessage: String?,
     val generationTimeMs: Long? = null,
     val tokenCount: Int? = null,
-    val modelIdUsed: String? = null
+    val modelIdUsed: String? = null,
+    val systemEventJson: String? = null
 )
 
 @Entity(tableName = "api_keys")

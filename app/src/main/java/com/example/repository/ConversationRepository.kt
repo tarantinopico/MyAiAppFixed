@@ -6,6 +6,9 @@ import com.example.data.database.MessageDao
 import com.example.data.database.MessageEntity
 import com.example.domain.model.ChatConversation
 import com.example.domain.model.ChatMessage
+import com.example.domain.model.SystemEvent
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -13,6 +16,9 @@ class ConversationRepository(
     private val conversationDao: ConversationDao,
     private val messageDao: MessageDao
 ) {
+    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+    private val systemEventAdapter = moshi.adapter(SystemEvent::class.java)
+
     fun getRecentConversations(archived: Boolean = false): Flow<List<ChatConversation>> {
         return conversationDao.getRecentConversations(archived).map { list -> list.map { it.toDomain() } }
     }
@@ -92,7 +98,10 @@ class ConversationRepository(
         errorMessage = errorMessage,
         generationTimeMs = generationTimeMs,
         tokenCount = tokenCount,
-        modelIdUsed = modelIdUsed
+        modelIdUsed = modelIdUsed,
+        systemEvent = systemEventJson?.let { 
+            try { systemEventAdapter.fromJson(it) } catch (e: Exception) { null } 
+        }
     )
 
     private fun ChatMessage.toEntity() = MessageEntity(
@@ -105,6 +114,7 @@ class ConversationRepository(
         errorMessage = errorMessage,
         generationTimeMs = generationTimeMs,
         tokenCount = tokenCount,
-        modelIdUsed = modelIdUsed
+        modelIdUsed = modelIdUsed,
+        systemEventJson = systemEvent?.let { systemEventAdapter.toJson(it) }
     )
 }

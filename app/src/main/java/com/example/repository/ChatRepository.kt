@@ -23,10 +23,24 @@ class ChatRepository(
         conversationId: Long,
         providerType: ProviderType,
         modelId: String,
-        messages: List<ChatMessage>
+        messages: List<ChatMessage>,
+        isAgentMode: Boolean = false
     ): Flow<ChatStreamEvent> = flow {
         val internalMessages = messages.map {
             InternalMessageDTO(it.role, it.content)
+        }.toMutableList()
+        
+        var prompt: String? = null
+        if (isAgentMode) {
+            prompt = """
+            You are operating in Agent Mode within a premium AI workspace.
+            You can generate file capabilities.
+            When a user asks you to create or output code for a file, output exactly in this format:
+            <file name="filename.ext">
+            ...content exactly...
+            </file>
+            Any text outside is rendered as standard message context. You may output multiple files.
+            """.trimIndent()
         }
 
         val client = getClient(providerType)
@@ -40,11 +54,9 @@ class ChatRepository(
                 }
             ) { apiKey ->
                 // Flow collection retry block
-                // We'll collect the flow here to actually trigger the exception if there's one during connection.
                 var completed = false
                 try {
-                    // If the flow fails quickly, it throws an exception
-                    client.streamChatCompletion(apiKey, modelId, internalMessages) // we return Flow
+                    client.streamChatCompletion(apiKey, modelId, internalMessages, prompt)
                 } catch (e: Exception) {
                     throw e
                 }
