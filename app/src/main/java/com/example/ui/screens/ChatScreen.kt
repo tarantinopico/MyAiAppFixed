@@ -186,7 +186,7 @@ fun ChatComposer(
                 modifier = Modifier
                     .weight(1f)
                     .defaultMinSize(minHeight = 48.dp),
-                shape = RoundedCornerShape(24.dp),
+                shape = CircleShape,
                 maxLines = 5,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -310,14 +310,23 @@ fun ChatMessageItem(message: ChatMessage) {
 
 @Composable
 fun MarkdownText(text: String, color: androidx.compose.ui.graphics.Color) {
+    if (text.isEmpty()) return
+    
     AndroidView(
+        modifier = Modifier,
         factory = { context ->
-            TextView(context).apply {
+            android.widget.TextView(context).apply {
+                layoutParams = android.view.ViewGroup.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                )
                 setTextColor(color.toArgb())
+                textSize = 16f
+                setLineSpacing(0f, 1.2f)
             }
         },
         update = { textView ->
-            val markwon = Markwon.create(textView.context)
+            val markwon = io.noties.markwon.Markwon.create(textView.context)
             markwon.setMarkdown(textView, text)
         }
     )

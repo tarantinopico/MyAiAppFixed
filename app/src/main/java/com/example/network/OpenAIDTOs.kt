@@ -41,6 +41,12 @@ data class Usage(
 data class Choice(
     val index: Int?,
     val message: NetworkMessage?,
-    val delta: NetworkMessage?, // for streaming
+    val delta: DeltaMessage?, // for streaming
     val finish_reason: String?
+)
+
+@JsonClass(generateAdapter = true)
+data class DeltaMessage(
+    val role: String?,
+    val content: String?
 )

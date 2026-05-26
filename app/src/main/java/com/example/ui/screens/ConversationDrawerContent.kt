@@ -46,6 +46,7 @@ fun ConversationDrawerContent(
             value = uiState.searchQuery,
             onValueChange = { listViewModel.onSearchQueryChanged(it) },
             placeholder = { Text("Search...") },
+            shape = androidx.compose.foundation.shape.CircleShape,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
