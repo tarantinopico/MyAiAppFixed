@@ -34,26 +34,24 @@ fun ModelManagementScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            Surface(
+            GlassSurface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .statusBarsPadding(),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-                tonalElevation = 2.dp,
-                shadowElevation = 2.dp
+                shape = MaterialTheme.shapes.large
             ) {
                 Row(
                     modifier = Modifier.padding(8.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
                         "Manage Models", 
                         style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }

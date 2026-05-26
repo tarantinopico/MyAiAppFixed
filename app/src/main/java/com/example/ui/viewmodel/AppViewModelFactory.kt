@@ -26,7 +26,7 @@ class AppViewModelFactory(
                 ConversationListViewModel(conversationRepository) as T
             }
             modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
-                SettingsViewModel(settingsRepository) as T
+                SettingsViewModel(settingsRepository, conversationRepository) as T
             }
             modelClass.isAssignableFrom(ModelManagementViewModel::class.java) -> {
                 ModelManagementViewModel(modelRepository) as T

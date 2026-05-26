@@ -64,6 +64,7 @@ class CerebrasClient(
 
             val adapter = moshi.adapter(ChatCompletionResponse::class.java)
             var fullText = ""
+            var totalTokens: Int? = null
 
             while (!source.exhausted()) {
                 val line = source.readUtf8Line() ?: continue
@@ -78,12 +79,15 @@ class CerebrasClient(
                             fullText += deltaText
                             emit(ChatStreamEvent.Delta(deltaText))
                         }
+                        if (parsed?.usage?.total_tokens != null) {
+                            totalTokens = parsed.usage.total_tokens
+                        }
                     } catch (e: Exception) {
                         // ignore parse errors
                     }
                 }
             }
-            emit(ChatStreamEvent.Completed(fullText))
+            emit(ChatStreamEvent.Completed(fullText, totalTokens))
 
         } catch (e: Exception) {
             emit(ChatStreamEvent.Error(e.message ?: "Unknown streaming error", e))

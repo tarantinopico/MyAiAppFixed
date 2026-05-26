@@ -61,27 +61,10 @@ fun ChatScreen(
         isStreaming = uiState.isStreaming
     )
 
-    val bgGlow1 = androidx.compose.ui.graphics.Brush.radialGradient(
-        colors = listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), Color.Transparent),
-        center = androidx.compose.ui.geometry.Offset(0f, 0f),
-        radius = 1200f
-    )
-    val bgGlow2 = androidx.compose.ui.graphics.Brush.radialGradient(
-        colors = listOf(MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f), Color.Transparent),
-        center = androidx.compose.ui.geometry.Offset(1000f, 2000f),
-        radius = 1500f
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Glow layer 1
-        Box(modifier = Modifier.fillMaxSize().background(bgGlow1))
-        // Glow layer 2
-        Box(modifier = Modifier.fillMaxSize().background(bgGlow2))
-        
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {

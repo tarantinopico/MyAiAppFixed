@@ -57,6 +57,7 @@ class GeminiClient(
 
             val adapter = moshi.adapter(GeminiResponse::class.java)
             var fullText = ""
+            var totalTokens: Int? = null
 
             // Gemini SSE alt=sse uses data: lines
             while (!source.exhausted()) {
@@ -72,12 +73,15 @@ class GeminiClient(
                             fullText += deltaText
                             emit(ChatStreamEvent.Delta(deltaText))
                         }
+                        if (parsed?.usageMetadata?.totalTokenCount != null) {
+                            totalTokens = parsed.usageMetadata.totalTokenCount
+                        }
                     } catch (e: Exception) {
                         // ignore parse errors
                     }
                 }
             }
-            emit(ChatStreamEvent.Completed(fullText))
+            emit(ChatStreamEvent.Completed(fullText, totalTokens))
 
         } catch (e: Exception) {
             emit(ChatStreamEvent.Error(e.message ?: "Unknown streaming error", e))

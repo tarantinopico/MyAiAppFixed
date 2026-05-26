@@ -22,6 +22,7 @@ data class NetworkMessage(
 data class ChatCompletionResponse(
     val id: String?,
     val choices: List<Choice>?,
+    val usage: Usage? = null,
     val x_groq: GroqExtensions? = null
 )
 

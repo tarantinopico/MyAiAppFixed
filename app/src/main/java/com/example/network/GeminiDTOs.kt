@@ -28,11 +28,19 @@ data class GeminiGenerationConfig(
 
 @JsonClass(generateAdapter = true)
 data class GeminiResponse(
-    val candidates: List<GeminiCandidate>?
+    val candidates: List<GeminiCandidate>?,
+    val usageMetadata: GeminiUsageMetadata? = null
 )
 
 @JsonClass(generateAdapter = true)
 data class GeminiCandidate(
     val content: GeminiContent?,
     val finishReason: String?
+)
+
+@JsonClass(generateAdapter = true)
+data class GeminiUsageMetadata(
+    val promptTokenCount: Int?,
+    val candidatesTokenCount: Int?,
+    val totalTokenCount: Int?
 )

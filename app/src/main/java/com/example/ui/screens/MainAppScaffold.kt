@@ -76,7 +76,35 @@ fun MainAppScaffold(appContainer: AppContainer) {
         }
     ) {
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-            // Replaced animated blobs with a solid background base to ensure completely stable readability
+            // Blurred Glass Orbs
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(x = (-100).dp, y = (-100).dp)
+                    .blur(radius = 100.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(x = 100.dp, y = 300.dp)
+                    .blur(radius = 120.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
             
             NavHost(
                 navController = navController,

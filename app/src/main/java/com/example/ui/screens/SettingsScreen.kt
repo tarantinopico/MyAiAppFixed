@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -36,26 +37,24 @@ fun SettingsScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            Surface(
+            com.example.ui.components.GlassSurface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .statusBarsPadding(),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-                tonalElevation = 2.dp,
-                shadowElevation = 2.dp
+                shape = MaterialTheme.shapes.large
             ) {
                 Row(
                     modifier = Modifier.padding(8.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
                         "Settings", 
                         style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -93,6 +92,11 @@ fun SettingsScreen(
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
+                TokenStatsSection(uiState.tokenStats)
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     "Models", 
                     style = MaterialTheme.typography.titleLarge,
@@ -120,6 +124,69 @@ fun SettingsScreen(
                     onToggleFailover = viewModel::toggleFailover,
                     onToggleCompact = viewModel::toggleCompact
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun TokenStatsSection(stats: List<com.example.data.database.TokenStatsResult>) {
+    Text(
+        text = "Token Usage Statistics",
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onBackground,
+        modifier = Modifier.padding(vertical = 8.dp)
+    )
+    GlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        elevation = 2.dp
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            if (stats.isEmpty()) {
+                Text(
+                    "No token usage data yet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                val maxTokens = stats.maxOfOrNull { it.totalTokens }?.toFloat()?.takeIf { it > 0 } ?: 1f
+                stats.sortedByDescending { it.totalTokens }.forEach { stat ->
+                    val progress = (stat.totalTokens.toFloat() / maxTokens).coerceIn(0f, 1f)
+                    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stat.modelIdUsed,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Text(
+                                text = "%,d".format(stat.totalTokens),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(progress)
+                                    .height(8.dp)
+                                    .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small)
+                            )
+                        }
+                    }
+                }
             }
         }
     }

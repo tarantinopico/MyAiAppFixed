@@ -55,3 +55,8 @@ data class ApiKeyEntity(
     val lastUsedAt: Long?,
     val failureCount: Int
 )
+
+data class TokenStatsResult(
+    val modelIdUsed: String,
+    val totalTokens: Long
+)

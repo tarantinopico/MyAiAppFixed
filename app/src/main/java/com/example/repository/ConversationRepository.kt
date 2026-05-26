@@ -35,6 +35,10 @@ class ConversationRepository(
         return messageDao.getMessagesSync(conversationId).map { it.toDomain() }
     }
 
+    fun getTokenStatsByModel(): Flow<List<com.example.data.database.TokenStatsResult>> {
+        return messageDao.getTokenStatsByModel()
+    }
+
     fun searchConversations(query: String): Flow<List<ChatConversation>> {
         return conversationDao.searchConversations(query).map { list -> list.map { it.toDomain() } }
     }

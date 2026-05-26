@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.model.ProviderType
 import com.example.domain.model.ApiKey
 import com.example.repository.SettingsRepository
+import com.example.repository.ConversationRepository
+import com.example.data.database.TokenStatsResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,11 +18,13 @@ data class SettingsUiState(
     val markdownEnabled: Boolean = true,
     val htmlEnabled: Boolean = false,
     val autoFailoverEnabled: Boolean = true,
-    val compactMode: Boolean = false
+    val compactMode: Boolean = false,
+    val tokenStats: List<TokenStatsResult> = emptyList()
 )
 
 class SettingsViewModel(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val conversationRepository: ConversationRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -30,6 +34,11 @@ class SettingsViewModel(
         viewModelScope.launch {
             settingsRepository.getAllApiKeys().collect { keys ->
                 _uiState.update { it.copy(apiKeys = keys) }
+            }
+        }
+        viewModelScope.launch {
+            conversationRepository.getTokenStatsByModel().collect { stats ->
+                _uiState.update { it.copy(tokenStats = stats) }
             }
         }
     }

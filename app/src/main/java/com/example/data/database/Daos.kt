@@ -73,6 +73,9 @@ interface MessageDao {
     
     @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY createdAt DESC LIMIT 1")
     suspend fun getLastMessage(conversationId: Long): MessageEntity?
+
+    @Query("SELECT modelIdUsed, SUM(tokenCount) as totalTokens FROM messages WHERE tokenCount IS NOT NULL AND modelIdUsed IS NOT NULL GROUP BY modelIdUsed")
+    fun getTokenStatsByModel(): Flow<List<TokenStatsResult>>
 }
 
 @Dao
