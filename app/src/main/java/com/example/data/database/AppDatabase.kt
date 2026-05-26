@@ -12,7 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ConversationEntity::class,
         MessageEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -27,6 +27,15 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE messages ADD COLUMN generationTimeMs INTEGER")
                 database.execSQL("ALTER TABLE messages ADD COLUMN tokenCount INTEGER")
                 database.execSQL("ALTER TABLE messages ADD COLUMN modelIdUsed TEXT")
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("UPDATE provider_models SET modelId = 'llama-3.1-8b-instant', displayName = 'Llama 3.1 8B' WHERE modelId = 'llama3-8b-8192'")
+                database.execSQL("UPDATE provider_models SET modelId = 'llama-3.3-70b-versatile', displayName = 'Llama 3.3 70B' WHERE modelId = 'llama3-70b-8192'")
+                database.execSQL("UPDATE conversations SET selectedModelId = 'llama-3.1-8b-instant' WHERE selectedModelId = 'llama3-8b-8192'")
+                database.execSQL("UPDATE conversations SET selectedModelId = 'llama-3.3-70b-versatile' WHERE selectedModelId = 'llama3-70b-8192'")
             }
         }
     }
