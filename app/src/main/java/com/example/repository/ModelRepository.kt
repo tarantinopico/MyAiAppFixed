@@ -33,8 +33,8 @@ class ModelRepository(
         if (modelDao.getSeededModelCount() == 0) {
             val defaults = listOf(
                 // Groq
-                ProviderModelEntity(0, ProviderType.GROQ, "Llama 3 8B", "llama3-8b-8192", true, 0, true),
-                ProviderModelEntity(0, ProviderType.GROQ, "Llama 3 70B", "llama3-70b-8192", false, 1, true),
+                ProviderModelEntity(0, ProviderType.GROQ, "Llama 3.1 8B", "llama-3.1-8b-instant", true, 0, true),
+                ProviderModelEntity(0, ProviderType.GROQ, "Llama 3.3 70B", "llama-3.3-70b-versatile", false, 1, true),
                 ProviderModelEntity(0, ProviderType.GROQ, "Mixtral 8x7B", "mixtral-8x7b-32768", false, 2, true),
                 
                 // Gemini

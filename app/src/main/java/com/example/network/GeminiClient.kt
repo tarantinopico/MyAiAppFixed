@@ -40,7 +40,15 @@ class GeminiClient(
             val response = api.streamGenerateContent(modelId, apiKey, request)
             if (!response.isSuccessful) {
                 val errorBody = response.errorBody()?.string() ?: "Unknown error"
-                emit(ChatStreamEvent.Error("HTTP ${response.code()}: $errorBody"))
+                val parsedError = try {
+                    val mapAdapter = moshi.adapter(Map::class.java)
+                    val map = mapAdapter.fromJson(errorBody) as? Map<*, *>
+                    val errorObj = map?.get("error") as? Map<*, *>
+                    errorObj?.get("message")?.toString()
+                } catch (e: Exception) { null }
+                
+                val errorMessage = parsedError ?: "HTTP ${response.code()}: $errorBody"
+                emit(ChatStreamEvent.Error(errorMessage))
                 return@flow
             }
 

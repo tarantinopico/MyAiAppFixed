@@ -22,11 +22,11 @@ class SecureApiKeyStore(
     )
 
     fun saveApiKey(providerType: ProviderType, apiKey: String) {
-        sharedPrefs.edit().putString(providerType.name, apiKey).apply()
+        sharedPrefs.edit().putString(providerType.name, apiKey.trim()).apply()
     }
 
     fun getApiKey(providerType: ProviderType): String? {
-        return sharedPrefs.getString(providerType.name, null)?.takeIf { it.isNotBlank() }
+        return sharedPrefs.getString(providerType.name, null)?.trim()?.takeIf { it.isNotBlank() }
     }
 
     fun deleteApiKey(providerType: ProviderType) {
