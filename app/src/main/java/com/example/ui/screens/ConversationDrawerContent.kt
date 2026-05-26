@@ -104,7 +104,7 @@ fun ConversationItem(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
-        color = Color.Transparent, // Let the background show through
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
     ) {
         Row(
             modifier = Modifier

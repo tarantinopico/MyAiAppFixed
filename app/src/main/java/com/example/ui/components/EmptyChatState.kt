@@ -25,17 +25,6 @@ fun EmptyChatState(
     provider: ProviderType,
     onSuggestionClick: (String) -> Unit
 ) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val scale = infiniteTransition.animateFloat(
-        initialValue = 0.95f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = EaseInOutSine),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "blob_scale"
-    )
-
     Column(
         modifier = Modifier.fillMaxWidth().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -45,27 +34,14 @@ fun EmptyChatState(
         
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.size(120.dp)
+            modifier = Modifier
+                .size(64.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .scale(scale.value)
-                    .alpha(0.2f)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                Color.Transparent
-                            )
-                        ),
-                        CircleShape
-                    )
-            )
             Icon(
                 imageVector = Icons.Default.AutoAwesome,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(32.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
@@ -74,7 +50,7 @@ fun EmptyChatState(
         
         Text(
             text = "How can ${provider.name} help you today?",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
         
@@ -87,11 +63,11 @@ fun EmptyChatState(
             "Draft a polite email"
         )
         
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             suggestions.forEach { suggestion ->
                 GlassCard(
                     modifier = Modifier.fillMaxWidth().clickable { onSuggestionClick(suggestion) },
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     elevation = 0.dp
                 ) {
                     Text(

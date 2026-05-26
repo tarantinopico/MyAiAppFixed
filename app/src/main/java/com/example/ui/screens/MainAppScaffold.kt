@@ -61,8 +61,8 @@ fun MainAppScaffold(appContainer: AppContainer) {
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
-                drawerTonalElevation = 0.dp
+                drawerContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
+                drawerTonalElevation = 4.dp
             ) {
                 ConversationDrawerContent(
                     navController = navController,
@@ -76,53 +76,8 @@ fun MainAppScaffold(appContainer: AppContainer) {
         }
     ) {
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-            // Elegant Background Blobs
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-            ) {
-                // Top accent blob
-                Box(
-                    modifier = Modifier
-                        .align(androidx.compose.ui.Alignment.TopStart)
-                        .offset(x = (-80).dp, y = (-80).dp)
-                        .rotate(rotation)
-                        .size(350.dp)
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                    Color.Transparent
-                                ),
-                                center = Offset(150f, 150f),
-                                radius = 400f
-                            ),
-                            shape = androidx.compose.foundation.shape.CircleShape
-                        )
-                        .blur(60.dp)
-                )
-                // Bottom accent blob
-                Box(
-                    modifier = Modifier
-                        .align(androidx.compose.ui.Alignment.BottomEnd)
-                        .offset(x = 120.dp, y = 120.dp)
-                        .rotate(-rotation)
-                        .size(450.dp)
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f),
-                                    Color.Transparent
-                                ),
-                                center = Offset(200f, 200f),
-                                radius = 500f
-                            ),
-                            shape = androidx.compose.foundation.shape.CircleShape
-                        )
-                        .blur(80.dp)
-                )
-            }
-
+            // Replaced animated blobs with a solid background base to ensure completely stable readability
+            
             NavHost(
                 navController = navController,
                 startDestination = NavigationRoute.CHAT

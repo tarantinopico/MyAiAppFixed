@@ -22,29 +22,19 @@ import androidx.compose.ui.unit.dp
 fun GlassCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(24.dp),
-    elevation: Dp = 8.dp,
+    elevation: Dp = 2.dp,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
         modifier = modifier
-            .shadow(elevation = elevation, shape = shape, spotColor = Color.Black.copy(alpha = 0.2f))
+            .shadow(elevation = elevation, shape = shape, spotColor = Color.Black.copy(alpha = 0.5f))
             .clip(shape)
             .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    )
-                )
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f)
             )
             .border(
                 width = 1.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
-                    )
-                ),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                 shape = shape
             )
     ) {
@@ -61,10 +51,10 @@ fun GlassSurface(
     Box(
         modifier = modifier
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
             .border(
                 width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
                 shape = shape
             )
     ) {

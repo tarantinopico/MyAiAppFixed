@@ -28,42 +28,52 @@ fun AdvancedChatComposer(
     onSend: () -> Unit,
     onStop: () -> Unit
 ) {
-    GlassSurface(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .imePadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(32.dp)
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+        tonalElevation = 2.dp,
+        shadowElevation = 4.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .padding(horizontal = 4.dp, vertical = 4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 IconButton(
-                    onClick = { /* TODO attachments */ },
-                    modifier = Modifier.size(44.dp)
+                    onClick = { /* Implement attachment logic if needed */ },
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         Icons.Default.Add,
-                        contentDescription = "Add Attachment",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        contentDescription = "Attach",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        modifier = Modifier.size(26.dp)
                     )
                 }
 
                 TextField(
                     value = text,
                     onValueChange = onTextChanged,
-                    placeholder = { Text("Message...", style = MaterialTheme.typography.bodyLarge) },
+                    placeholder = { 
+                        Text(
+                            "Message...", 
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        ) 
+                    },
                     modifier = Modifier
                         .weight(1f)
-                        .defaultMinSize(minHeight = 44.dp),
+                        .defaultMinSize(minHeight = 48.dp),
                     shape = RoundedCornerShape(24.dp),
                     maxLines = 6,
                     colors = TextFieldDefaults.colors(
@@ -71,7 +81,9 @@ fun AdvancedChatComposer(
                         unfocusedContainerColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
-                        cursorColor = MaterialTheme.colorScheme.primary
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
                     textStyle = MaterialTheme.typography.bodyLarge
                 )
@@ -83,47 +95,51 @@ fun AdvancedChatComposer(
                     },
                     label = "ComposerAction"
                 ) { (streaming, hasText) ->
-                    when {
-                        streaming -> {
-                            IconButton(
-                                onClick = onStop,
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .background(MaterialTheme.colorScheme.errorContainer, CircleShape)
-                            ) {
-                                Icon(
-                                    Icons.Default.Stop,
-                                    contentDescription = "Stop",
-                                    tint = MaterialTheme.colorScheme.onErrorContainer
-                                )
+                    Box(modifier = Modifier.padding(bottom = 2.dp, end = 2.dp)) {
+                        when {
+                            streaming -> {
+                                IconButton(
+                                    onClick = onStop,
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Stop,
+                                        contentDescription = "Stop",
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
-                        }
-                        hasText -> {
-                            IconButton(
-                                onClick = onSend,
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.Send,
-                                    contentDescription = "Send",
-                                    tint = MaterialTheme.colorScheme.onPrimary
-                                )
+                            hasText -> {
+                                IconButton(
+                                    onClick = onSend,
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.Send,
+                                        contentDescription = "Send",
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
-                        }
-                        else -> {
-                            IconButton(
-                                onClick = { /* TODO voice */ },
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                            ) {
-                                Icon(
-                                    Icons.Default.Mic,
-                                    contentDescription = "Voice Input",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                            else -> {
+                                IconButton(
+                                    onClick = { /* Voice input callback */ },
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .background(Color.Transparent, CircleShape)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Mic,
+                                        contentDescription = "Voice Input",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
                             }
                         }
                     }

@@ -36,12 +36,15 @@ fun SettingsScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            GlassSurface(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .statusBarsPadding(),
-                shape = MaterialTheme.shapes.large
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
+                tonalElevation = 2.dp,
+                shadowElevation = 2.dp
             ) {
                 Row(
                     modifier = Modifier.padding(8.dp).fillMaxWidth(),

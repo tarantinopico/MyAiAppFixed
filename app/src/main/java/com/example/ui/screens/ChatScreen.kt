@@ -61,12 +61,15 @@ fun ChatScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            GlassSurface(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                shape = RoundedCornerShape(24.dp)
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
+                tonalElevation = 2.dp,
+                shadowElevation = 2.dp
             ) {
                 Row(
                     modifier = Modifier
@@ -154,32 +157,29 @@ fun ProviderModelDropdown(
 
     Box {
         Surface(
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.surfaceVariant,
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
                 .clickable { expanded = true }
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(16.dp)
-                )
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
                     text = "${selectedProvider.name} • $selectedModelName",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Icon(
                     Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -222,7 +222,7 @@ fun ChatMessageItem(message: ChatMessage) {
 
     val isUser = message.role == MessageRole.USER
     val alignment = if (isUser) Alignment.End else Alignment.Start
-    val bgColor = if (isUser) MaterialTheme.colorScheme.primary.copy(alpha = 0.9f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+    val bgColor = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
     val textColor = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
     Column(
@@ -309,7 +309,7 @@ fun ChatMessageItem(message: ChatMessage) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 10.dp),
+                            .padding(top = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -325,8 +325,8 @@ fun ChatMessageItem(message: ChatMessage) {
                                 Icon(
                                     Icons.Default.ContentCopy,
                                     contentDescription = "Copy",
-                                    tint = textColor.copy(alpha = 0.7f),
-                                    modifier = Modifier.size(14.dp)
+                                    tint = textColor.copy(alpha = 0.6f),
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
                         }
@@ -338,8 +338,8 @@ fun ChatMessageItem(message: ChatMessage) {
                         if (metaList.isNotEmpty()) {
                             Text(
                                 text = metaList.joinToString(" • "),
-                                style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp),
-                                color = textColor.copy(alpha = 0.5f)
+                                style = MaterialTheme.typography.labelSmall,
+                                color = textColor.copy(alpha = 0.65f)
                             )
                         }
                     }
