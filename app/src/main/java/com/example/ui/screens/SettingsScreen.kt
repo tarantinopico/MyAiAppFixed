@@ -60,12 +60,13 @@ fun SettingsScreen(
                 )
             }
             item {
-                Divider(modifier = Modifier.padding(vertical = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                 Text("Models", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onNavigateToModels,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large
                 ) {
                     Text("Manage Provider Models")
                 }
@@ -84,7 +85,10 @@ fun ApiKeyManagementItem(
     var keyInput by remember { mutableStateOf("") }
     var showKey by remember { mutableStateOf(false) }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = provider.name, style = MaterialTheme.typography.titleMedium)
             if (hasKey) {

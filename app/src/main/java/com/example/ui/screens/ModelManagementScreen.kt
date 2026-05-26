@@ -64,7 +64,10 @@ fun ModelManagementScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large
+            ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Add New Custom Model", style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(
@@ -118,7 +121,10 @@ fun ModelItem(
     onDelete: () -> Unit,
     onSetDefault: () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large
+    ) {
         Row(
             modifier = Modifier
                 .padding(16.dp)

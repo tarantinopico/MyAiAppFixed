@@ -84,7 +84,7 @@ class GroqClient(
                             totalTokens = it
                         }
                     } catch (e: Exception) {
-                        // ignore parse errors on partial streams
+                        emit(ChatStreamEvent.Error("Parse Error: ${e.message} \n\nData: $data", e))
                     }
                 }
             }
