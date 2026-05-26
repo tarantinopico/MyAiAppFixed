@@ -16,8 +16,14 @@ import com.example.domain.model.EventType
 import com.example.domain.model.SystemEvent
 import com.example.domain.model.GeneratedFile
 
+import androidx.compose.ui.platform.LocalContext
+import com.example.data.storage.FileExportManager
+
 @Composable
 fun SystemEventItem(event: SystemEvent, onPreviewFile: (GeneratedFile) -> Unit) {
+    val context = LocalContext.current
+    val exportManager = androidx.compose.runtime.remember { FileExportManager(context) }
+    
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -60,7 +66,8 @@ fun SystemEventItem(event: SystemEvent, onPreviewFile: (GeneratedFile) -> Unit) 
                         GeneratedFileCard(
                             file = file, 
                             onPreview = { onPreviewFile(file) }, 
-                            onDownload = {}
+                            onDownload = { exportManager.shareFile(file) },
+                            onOpen = { exportManager.openFile(file) }
                         )
                     }
                 }
@@ -73,7 +80,8 @@ fun SystemEventItem(event: SystemEvent, onPreviewFile: (GeneratedFile) -> Unit) 
 fun GeneratedFileCard(
     file: com.example.domain.model.GeneratedFile,
     onPreview: () -> Unit,
-    onDownload: () -> Unit
+    onDownload: () -> Unit,
+    onOpen: () -> Unit
 ) {
     Surface(
         modifier = Modifier
@@ -110,7 +118,10 @@ fun GeneratedFileCard(
                 Icon(Icons.Default.Visibility, contentDescription = "Preview", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onDownload) {
-                Icon(Icons.Default.Download, contentDescription = "Download", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Icons.Default.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            IconButton(onClick = onOpen) {
+                Icon(Icons.Default.OpenInNew, contentDescription = "Open Externally", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

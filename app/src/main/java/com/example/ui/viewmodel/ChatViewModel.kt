@@ -103,6 +103,49 @@ class ChatViewModel(
         }
     }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    fun startNewConversationWithContext(contextIds: List<Long>, isAgentMode: Boolean) {
+        startNewConversation()
+        setAgentMode(isAgentMode)
+        if (contextIds.isNotEmpty()) {
+            viewModelScope.launch {
+                val contextMessages = java.lang.StringBuilder()
+                for (id in contextIds) {
+                    val messages = conversationRepository.getMessages(id).firstOrNull()
+                    val conv = conversationRepository.getConversation(id).firstOrNull()
+                    if (conv != null && messages != null) {
+                        contextMessages.append("Context from conversation '${conv.title}':\n")
+                        messages.forEach {
+                            if (it.role == MessageRole.USER || it.role == MessageRole.ASSISTANT) {
+                                contextMessages.append("${it.role.name}: ${it.content}\n")
+                            }
+                        }
+                        contextMessages.append("\n")
+                    }
+                }
+                if (contextMessages.isNotEmpty()) {
+                    val newConv = ChatConversation(
+                        title = "New Contextual Conversation",
+                        selectedProvider = _uiState.value.activeProvider,
+                        selectedModelId = _uiState.value.activeModelId,
+                        createdAt = System.currentTimeMillis(),
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    val newConvId = conversationRepository.createConversation(newConv)
+                    activeConversationId = newConvId
+                    
+                    val sysMsg = ChatMessage(
+                        conversationId = newConvId,
+                        role = MessageRole.SYSTEM,
+                        content = "Injected context from previous conversations.\n\n$contextMessages"
+                    )
+                    conversationRepository.insertMessage(sysMsg)
+                    loadConversation(newConvId)
+                }
+            }
+        }
+    }
+
     fun selectProviderModel(provider: ProviderType, modelId: String) {
         _uiState.update { it.copy(activeProvider = provider, activeModelId = modelId) }
         val conv = _uiState.value.conversation

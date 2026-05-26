@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,12 +54,12 @@ fun ChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
-
-    LaunchedEffect(uiState.messages.size, uiState.isStreaming) {
-        if (uiState.messages.isNotEmpty()) {
-            listState.animateScrollToItem(uiState.messages.size - 1)
-        }
-    }
+    
+    val scrollController = com.example.ui.components.rememberSmartAutoScrollState(
+        listState = listState,
+        itemCount = uiState.messages.size,
+        isStreaming = uiState.isStreaming
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -95,8 +96,19 @@ fun ChatScreen(
                             )
                         }
 
-                        IconButton(onClick = onNavigateToSettings) {
-                            Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Row {
+                            val context = androidx.compose.ui.platform.LocalContext.current
+                            val exportManager = remember { com.example.data.storage.FileExportManager(context) }
+                            
+                            IconButton(onClick = { 
+                                val title = uiState.conversation?.title ?: "Chat"
+                                exportManager.shareConversation(title, uiState.messages)
+                            }) {
+                                Icon(Icons.Default.Share, contentDescription = "Export")
+                            }
+                            IconButton(onClick = onNavigateToSettings) {
+                                Icon(Icons.Default.Settings, contentDescription = "Settings")
+                            }
                         }
                     }
                 }
@@ -149,6 +161,24 @@ fun ChatScreen(
                         }
                     }
                 }
+            }
+        }
+        
+        // Jump To Latest FAB
+        androidx.compose.animation.AnimatedVisibility(
+            visible = !scrollController.isAutoFollowEnabled && uiState.messages.isNotEmpty(),
+            enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(),
+            exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.scaleOut(),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 90.dp, end = 16.dp)
+        ) {
+            SmallFloatingActionButton(
+                onClick = { scrollController.jumpToBottom(uiState.messages.size) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(androidx.compose.material.icons.Icons.Default.KeyboardArrowDown, contentDescription = "Scroll to bottom")
             }
         }
         
@@ -318,12 +348,31 @@ fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.mod
                     com.example.ui.components.AnimatedTypingIndicator(modifier = Modifier.padding(vertical = 4.dp))
                 } else {
                     if (isUser) {
-                        Text(
-                            text = message.content,
-                            color = textColor,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(bottom = 2.dp)
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = message.content,
+                                color = textColor,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.weight(1f).padding(bottom = 2.dp)
+                            )
+                            
+                            val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+                            IconButton(
+                                onClick = { clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content)) },
+                                modifier = Modifier.size(24.dp).padding(start = 8.dp, top = 2.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.ContentCopy,
+                                    contentDescription = "Copy",
+                                    tint = textColor.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     } else {
                         com.example.ui.components.PremiumMarkdownRenderer(
                             markdown = message.content,
@@ -334,11 +383,16 @@ fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.mod
                             if (message.content.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(12.dp))
                             }
+                            
+                            val context = androidx.compose.ui.platform.LocalContext.current
+                            val exportManager = remember { com.example.data.storage.FileExportManager(context) }
+                            
                             message.systemEvent.files.forEach { file ->
                                 com.example.ui.components.GeneratedFileCard(
                                     file = file,
                                     onPreview = { onPreviewFile(file) },
-                                    onDownload = {}
+                                    onDownload = { exportManager.shareFile(file) },
+                                    onOpen = { exportManager.openFile(file) }
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
