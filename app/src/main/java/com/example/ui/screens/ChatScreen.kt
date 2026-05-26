@@ -243,7 +243,7 @@ fun ChatMessageItem(message: ChatMessage) {
         horizontalAlignment = alignment
     ) {
         Surface(
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = if(isUser) 20.dp else 4.dp, bottomEnd = if(isUser) 4.dp else 20.dp),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = if(isUser) 24.dp else 4.dp, bottomEnd = if(isUser) 4.dp else 24.dp),
             color = bgColor,
             shadowElevation = 2.dp,
             modifier = Modifier.widthIn(max = 340.dp)
@@ -312,10 +312,13 @@ fun ChatMessageItem(message: ChatMessage) {
 fun MarkdownText(text: String, color: androidx.compose.ui.graphics.Color) {
     if (text.isEmpty()) return
     
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val markwon = remember(context) { io.noties.markwon.Markwon.create(context) }
+    
     AndroidView(
         modifier = Modifier,
-        factory = { context ->
-            android.widget.TextView(context).apply {
+        factory = { ctx ->
+            android.widget.TextView(ctx).apply {
                 layoutParams = android.view.ViewGroup.LayoutParams(
                     android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
                     android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -326,7 +329,6 @@ fun MarkdownText(text: String, color: androidx.compose.ui.graphics.Color) {
             }
         },
         update = { textView ->
-            val markwon = io.noties.markwon.Markwon.create(textView.context)
             markwon.setMarkdown(textView, text)
         }
     )
