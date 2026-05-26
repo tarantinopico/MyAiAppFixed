@@ -79,8 +79,6 @@ fun AIModelAggregatorTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = Color.Transparent.toArgb()
-            window.navigationBarColor = Color.Transparent.toArgb()
             WindowCompat.setDecorFitsSystemWindows(window, false)
             val wic = WindowCompat.getInsetsController(window, view)
             wic.isAppearanceLightStatusBars = !darkTheme

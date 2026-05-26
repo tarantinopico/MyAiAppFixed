@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -39,7 +40,7 @@ fun SystemEventItem(event: SystemEvent, onPreviewFile: (GeneratedFile) -> Unit) 
             val (icon, tint) = when (event.type) {
                 EventType.INFO -> Icons.Default.Info to MaterialTheme.colorScheme.primary
                 EventType.TOOL_CALL -> Icons.Default.Build to MaterialTheme.colorScheme.tertiary
-                EventType.FILE_GENERATION -> Icons.Default.InsertDriveFile to MaterialTheme.colorScheme.secondary
+                EventType.FILE_GENERATION -> Icons.AutoMirrored.Filled.InsertDriveFile to MaterialTheme.colorScheme.secondary
                 EventType.WORKFLOW_START -> Icons.Default.PlayArrow to MaterialTheme.colorScheme.onSurface
                 EventType.WORKFLOW_END -> Icons.Default.CheckCircle to Color(0xFF4CAF50)
                 EventType.ERROR -> Icons.Default.Warning to MaterialTheme.colorScheme.error
@@ -121,7 +122,7 @@ fun GeneratedFileCard(
                 Icon(Icons.Default.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onOpen) {
-                Icon(Icons.Default.OpenInNew, contentDescription = "Open Externally", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Open Externally", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
