@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -7,6 +8,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.blur
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -58,29 +61,54 @@ fun MainAppScaffold(appContainer: AppContainer) {
             }
         }
     ) {
-        NavHost(
-            navController = navController,
-            startDestination = NavigationRoute.CHAT
-        ) {
-            composable(NavigationRoute.CHAT) {
-                ChatScreen(
-                    viewModel = chatViewModel,
-                    onOpenDrawer = { scope.launch { drawerState.open() } },
-                    onNavigateToSettings = { navController.navigate(NavigationRoute.SETTINGS) }
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Blurred background blob
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .offset(x = (-100).dp, y = (-100).dp)
+                        .size(300.dp)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), shape = androidx.compose.foundation.shape.CircleShape)
+                        .blur(80.dp)
+                )
+                Box(
+                    modifier = Modifier
+                        .align(androidx.compose.ui.Alignment.BottomEnd)
+                        .offset(x = 100.dp, y = 50.dp)
+                        .size(350.dp)
+                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f), shape = androidx.compose.foundation.shape.CircleShape)
+                        .blur(80.dp)
                 )
             }
-            composable(NavigationRoute.SETTINGS) {
-                SettingsScreen(
-                    onBack = { navController.popBackStack() },
-                    onNavigateToModels = { navController.navigate(NavigationRoute.MODELS) },
-                    viewModel = viewModel(factory = factory)
-                )
-            }
-            composable(NavigationRoute.MODELS) {
-                ModelManagementScreen(
-                    onBack = { navController.popBackStack() },
-                    viewModel = viewModel(factory = factory)
-                )
+
+            NavHost(
+                navController = navController,
+                startDestination = NavigationRoute.CHAT
+            ) {
+                composable(NavigationRoute.CHAT) {
+                    ChatScreen(
+                        viewModel = chatViewModel,
+                        onOpenDrawer = { scope.launch { drawerState.open() } },
+                        onNavigateToSettings = { navController.navigate(NavigationRoute.SETTINGS) }
+                    )
+                }
+                composable(NavigationRoute.SETTINGS) {
+                    SettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onNavigateToModels = { navController.navigate(NavigationRoute.MODELS) },
+                        viewModel = viewModel(factory = factory)
+                    )
+                }
+                composable(NavigationRoute.MODELS) {
+                    ModelManagementScreen(
+                        onBack = { navController.popBackStack() },
+                        viewModel = viewModel(factory = factory)
+                    )
+                }
             }
         }
     }

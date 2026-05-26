@@ -37,5 +37,8 @@ data class MessageEntity(
     val content: String,
     val createdAt: Long,
     val isStreaming: Boolean,
-    val errorMessage: String?
+    val errorMessage: String?,
+    val generationTimeMs: Long? = null,
+    val tokenCount: Int? = null,
+    val modelIdUsed: String? = null
 )

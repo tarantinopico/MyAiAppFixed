@@ -56,6 +56,7 @@ class GroqClient(
 
             val adapter = moshi.adapter(ChatCompletionResponse::class.java)
             var fullText = ""
+            var totalTokens: Int? = null
 
             while (!source.exhausted()) {
                 val line = source.readUtf8Line() ?: continue
@@ -70,12 +71,16 @@ class GroqClient(
                             fullText += deltaText
                             emit(ChatStreamEvent.Delta(deltaText))
                         }
+                        // Try to get token usage from x_groq
+                        parsed?.x_groq?.usage?.total_tokens?.let {
+                            totalTokens = it
+                        }
                     } catch (e: Exception) {
                         // ignore parse errors on partial streams
                     }
                 }
             }
-            emit(ChatStreamEvent.Completed(fullText))
+            emit(ChatStreamEvent.Completed(fullText, totalTokens))
 
         } catch (e: Exception) {
             emit(ChatStreamEvent.Error(e.message ?: "Unknown streaming error", e))

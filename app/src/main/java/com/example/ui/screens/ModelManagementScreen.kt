@@ -29,8 +29,12 @@ fun ModelManagementScreen(
     var newModelId by remember { mutableStateOf("") }
 
     Scaffold(
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                ),
                 title = { Text("Manage Models") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {

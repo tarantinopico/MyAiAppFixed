@@ -89,7 +89,10 @@ class ConversationRepository(
         content = content,
         createdAt = createdAt,
         isStreaming = isStreaming,
-        errorMessage = errorMessage
+        errorMessage = errorMessage,
+        generationTimeMs = generationTimeMs,
+        tokenCount = tokenCount,
+        modelIdUsed = modelIdUsed
     )
 
     private fun ChatMessage.toEntity() = MessageEntity(
@@ -99,6 +102,9 @@ class ConversationRepository(
         content = content,
         createdAt = createdAt,
         isStreaming = isStreaming,
-        errorMessage = errorMessage
+        errorMessage = errorMessage,
+        generationTimeMs = generationTimeMs,
+        tokenCount = tokenCount,
+        modelIdUsed = modelIdUsed
     )
 }

@@ -29,7 +29,9 @@ class AppContainer(private val applicationContext: Context) {
             applicationContext,
             AppDatabase::class.java,
             "ai_model_aggregator.db"
-        ).fallbackToDestructiveMigration().build()
+        )
+        .addMigrations(AppDatabase.MIGRATION_1_2)
+        .build()
     }
 
     val moshi by lazy {

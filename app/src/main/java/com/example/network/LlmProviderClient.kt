@@ -6,7 +6,7 @@ import com.example.domain.model.MessageRole
 sealed class ChatStreamEvent {
     object Started : ChatStreamEvent()
     data class Delta(val text: String) : ChatStreamEvent()
-    data class Completed(val text: String) : ChatStreamEvent()
+    data class Completed(val text: String, val usageTokens: Int? = null) : ChatStreamEvent()
     data class Error(val message: String, val throwable: Throwable? = null) : ChatStreamEvent()
 }
 

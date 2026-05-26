@@ -33,5 +33,8 @@ data class ChatMessage(
     val content: String,
     val createdAt: Long = System.currentTimeMillis(),
     val isStreaming: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val generationTimeMs: Long? = null,
+    val tokenCount: Int? = null,
+    val modelIdUsed: String? = null
 )

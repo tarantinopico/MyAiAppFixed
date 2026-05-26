@@ -46,8 +46,12 @@ fun ChatScreen(
     }
 
     Scaffold(
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                ),
                 title = {
                     ProviderModelDropdown(
                         selectedProvider = uiState.activeProvider,
@@ -109,12 +113,14 @@ fun ProviderModelDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    val selectedModelName = models.find { it.providerType == selectedProvider && it.modelId == selectedModelId }?.displayName ?: selectedModelId
+
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
-            value = "${selectedProvider.name} - $selectedModelId",
+            value = "${selectedProvider.name} - $selectedModelName",
             onValueChange = {},
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -167,7 +173,8 @@ fun ChatComposer(
         Row(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
-                .navigationBarsPadding(),
+                .navigationBarsPadding()
+                .imePadding(),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -225,33 +232,58 @@ fun ChatComposer(
 fun ChatMessageItem(message: ChatMessage) {
     val isUser = message.role == MessageRole.USER
     val alignment = if (isUser) Alignment.End else Alignment.Start
-    val bgColor = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    val bgColor = if (isUser) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
     val textColor = if (isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp),
         horizontalAlignment = alignment
     ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(bgColor)
-                .padding(12.dp)
-                .widthIn(max = 300.dp)
+        Surface(
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = if(isUser) 20.dp else 4.dp, bottomEnd = if(isUser) 4.dp else 20.dp),
+            color = bgColor,
+            shadowElevation = 2.dp,
+            modifier = Modifier.widthIn(max = 340.dp)
         ) {
-            if (message.errorMessage != null) {
-                Text(
-                    text = message.errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            } else {
-                if (isUser) {
-                    Text(text = message.content, color = textColor)
+            Column(modifier = Modifier.padding(14.dp)) {
+                if (message.errorMessage != null) {
+                    Text(
+                        text = message.errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 } else {
-                    MarkdownText(text = message.content, color = textColor)
+                    if (isUser) {
+                        Text(text = message.content, color = textColor)
+                    } else {
+                        MarkdownText(text = message.content, color = textColor)
+                    }
+                }
+                
+                // Metadata footer for assistant
+                if (!isUser && message.errorMessage == null && !message.isStreaming) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val genTime = message.generationTimeMs?.let { "${it / 1000.0}s" }
+                        val tokens = message.tokenCount?.let { "$it tokens" }
+                        val model = message.modelIdUsed?.let { it.take(15) }
+                        
+                        val metaList = listOfNotNull(model, genTime, tokens)
+                        if (metaList.isNotEmpty()) {
+                            Text(
+                                text = metaList.joinToString(" • "),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = textColor.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
                 }
             }
         }

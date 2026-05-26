@@ -42,8 +42,14 @@ class ChatViewModel(
             // Collect models to update dropdown
             modelRepository.getAllModels().collect { models ->
                 _uiState.update { it.copy(models = models) }
-                if (_uiState.value.activeModelId.isEmpty() && models.isNotEmpty()) {
-                    val defaultModel = models.firstOrNull { it.isDefault } ?: models.first()
+                val currentProvider = _uiState.value.activeProvider
+                val currentModel = _uiState.value.activeModelId
+                
+                val modelExists = models.any { it.providerType == currentProvider && it.modelId == currentModel }
+                if (!modelExists && models.isNotEmpty()) {
+                    val defaultModel = models.firstOrNull { it.providerType == currentProvider && it.isDefault }
+                        ?: models.firstOrNull { it.providerType == currentProvider }
+                        ?: models.firstOrNull { it.isDefault } ?: models.first()
                     _uiState.update { 
                         it.copy(
                             activeProvider = defaultModel.providerType,
@@ -166,6 +172,9 @@ class ChatViewModel(
             
             var currentContent = ""
             var errorMessage: String? = null
+            var tokenCount: Int? = null
+            val startTimeMs = System.currentTimeMillis()
+            var endTimeMs: Long? = null
 
             chatRepository.sendMessageStream(convId, provider, model, history).collect { event ->
                 when(event) {
@@ -179,12 +188,18 @@ class ChatViewModel(
                     }
                     is ChatStreamEvent.Completed -> {
                         currentContent = event.text
+                        tokenCount = event.usageTokens
+                        endTimeMs = System.currentTimeMillis()
                     }
                     is ChatStreamEvent.Error -> {
                         errorMessage = event.message
+                        endTimeMs = System.currentTimeMillis()
                     }
                 }
             }
+
+            if (endTimeMs == null) endTimeMs = System.currentTimeMillis()
+            val durationMs = endTimeMs!! - startTimeMs
 
             // Final update
             val finalMsg = ChatMessage(
@@ -193,7 +208,10 @@ class ChatViewModel(
                 role = MessageRole.ASSISTANT,
                 content = currentContent,
                 isStreaming = false,
-                errorMessage = errorMessage
+                errorMessage = errorMessage,
+                generationTimeMs = durationMs,
+                tokenCount = tokenCount,
+                modelIdUsed = model
             )
             conversationRepository.updateMessage(finalMsg)
             _uiState.update { it.copy(isStreaming = false) }
