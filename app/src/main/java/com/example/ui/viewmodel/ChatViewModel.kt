@@ -191,6 +191,10 @@ class ChatViewModel(
                         tokenCount = event.usageTokens
                         endTimeMs = System.currentTimeMillis()
                     }
+                    is ChatStreamEvent.SystemMessage -> {
+                        val sysMsg = ChatMessage(conversationId = convId, role = MessageRole.SYSTEM, content = event.message)
+                        conversationRepository.insertMessage(sysMsg)
+                    }
                     is ChatStreamEvent.Error -> {
                         errorMessage = event.message
                         endTimeMs = System.currentTimeMillis()

@@ -71,3 +71,18 @@ interface MessageDao {
     @Query("SELECT * FROM messages WHERE conversationId = :conversationId ORDER BY createdAt DESC LIMIT 1")
     suspend fun getLastMessage(conversationId: Long): MessageEntity?
 }
+
+@Dao
+interface ApiKeyDao {
+    @Query("SELECT * FROM api_keys ORDER BY addedAt ASC")
+    fun getAllApiKeys(): Flow<List<ApiKeyEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertApiKey(apiKey: ApiKeyEntity)
+    
+    @Update
+    suspend fun updateApiKey(apiKey: ApiKeyEntity)
+
+    @Delete
+    suspend fun deleteApiKey(apiKey: ApiKeyEntity)
+}

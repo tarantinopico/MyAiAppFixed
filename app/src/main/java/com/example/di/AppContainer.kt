@@ -30,7 +30,7 @@ class AppContainer(private val applicationContext: Context) {
             AppDatabase::class.java,
             "ai_model_aggregator.db"
         )
-        .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+        .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
         .build()
     }
 
@@ -81,6 +81,9 @@ class AppContainer(private val applicationContext: Context) {
     val geminiApi: GeminiApi by lazy { geminiRetrofit.create(GeminiApi::class.java) }
 
     val secureApiKeyStore by lazy { SecureApiKeyStore(applicationContext) }
+    
+    val multiKeyManager by lazy { com.example.data.repository.MultiKeyManager(database.apiKeyDao(), secureApiKeyStore) }
+    val apiKeyFailoverManager by lazy { com.example.network.ApiKeyFailoverManager(multiKeyManager) }
 
     val groqClient by lazy { GroqClient(groqApi, moshi) }
     val cerebrasClient by lazy { CerebrasClient(cerebrasApi, moshi) }
@@ -89,11 +92,11 @@ class AppContainer(private val applicationContext: Context) {
     // Repositories
     val modelRepository by lazy { ModelRepository(database.modelDao()) }
     val conversationRepository by lazy { ConversationRepository(database.conversationDao(), database.messageDao()) }
-    val settingsRepository by lazy { SettingsRepository(secureApiKeyStore) }
+    val settingsRepository by lazy { SettingsRepository(multiKeyManager) }
     val chatRepository by lazy {
         ChatRepository(
             conversationRepository,
-            settingsRepository,
+            apiKeyFailoverManager,
             groqClient,
             geminiClient,
             cerebrasClient

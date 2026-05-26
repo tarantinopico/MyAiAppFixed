@@ -3,19 +3,20 @@ package com.example.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.model.ProviderType
+import com.example.domain.model.ApiKey
 import com.example.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-
-data class ApiKeyStatus(
-    val provider: ProviderType,
-    val hasKey: Boolean
-)
+import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val apiKeysStatus: List<ApiKeyStatus> = emptyList()
+    val apiKeys: List<ApiKey> = emptyList(),
+    val markdownEnabled: Boolean = true,
+    val htmlEnabled: Boolean = false,
+    val autoFailoverEnabled: Boolean = true,
+    val compactMode: Boolean = false
 )
 
 class SettingsViewModel(
@@ -26,25 +27,29 @@ class SettingsViewModel(
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
-        refreshStatuses()
-    }
-
-    fun refreshStatuses() {
-        val statuses = ProviderType.entries.map { provider ->
-            ApiKeyStatus(provider, settingsRepository.hasApiKey(provider))
+        viewModelScope.launch {
+            settingsRepository.getAllApiKeys().collect { keys ->
+                _uiState.update { it.copy(apiKeys = keys) }
+            }
         }
-        _uiState.update { it.copy(apiKeysStatus = statuses) }
     }
 
-    fun saveApiKey(provider: ProviderType, key: String) {
+    fun toggleMarkdown() = _uiState.update { it.copy(markdownEnabled = !it.markdownEnabled) }
+    fun toggleHtml() = _uiState.update { it.copy(htmlEnabled = !it.htmlEnabled) }
+    fun toggleFailover() = _uiState.update { it.copy(autoFailoverEnabled = !it.autoFailoverEnabled) }
+    fun toggleCompact() = _uiState.update { it.copy(compactMode = !it.compactMode) }
+
+    fun saveApiKey(provider: ProviderType, key: String, label: String = "Default Key") {
         if (key.isNotBlank()) {
-            settingsRepository.saveApiKey(provider, key.trim())
-            refreshStatuses()
+            viewModelScope.launch {
+                settingsRepository.saveApiKey(provider, key.trim(), label)
+            }
         }
     }
 
-    fun deleteApiKey(provider: ProviderType) {
-        settingsRepository.deleteApiKey(provider)
-        refreshStatuses()
+    fun deleteApiKey(id: String) {
+        viewModelScope.launch {
+            settingsRepository.deleteApiKey(id)
+        }
     }
 }

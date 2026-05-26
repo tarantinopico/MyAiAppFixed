@@ -8,6 +8,7 @@ sealed class ChatStreamEvent {
     data class Delta(val text: String) : ChatStreamEvent()
     data class Completed(val text: String, val usageTokens: Int? = null) : ChatStreamEvent()
     data class Error(val message: String, val throwable: Throwable? = null) : ChatStreamEvent()
+    data class SystemMessage(val message: String) : ChatStreamEvent()
 }
 
 data class InternalMessageDTO(

@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.example.domain.model.ProviderType
+import java.util.UUID
 
 class SecureApiKeyStore(
     private val context: Context
@@ -15,25 +16,21 @@ class SecureApiKeyStore(
 
     private val sharedPrefs: SharedPreferences = EncryptedSharedPreferences.create(
         context,
-        "api_keys_prefs",
+        "api_keys_prefs_v2",
         masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    fun saveApiKey(providerType: ProviderType, apiKey: String) {
-        sharedPrefs.edit().putString(providerType.name, apiKey.trim()).apply()
+    fun saveApiKey(id: String, apiKey: String) {
+        sharedPrefs.edit().putString(id, apiKey.trim()).apply()
     }
 
-    fun getApiKey(providerType: ProviderType): String? {
-        return sharedPrefs.getString(providerType.name, null)?.trim()?.takeIf { it.isNotBlank() }
+    fun getApiKey(id: String): String? {
+        return sharedPrefs.getString(id, null)?.trim()?.takeIf { it.isNotBlank() }
     }
 
-    fun deleteApiKey(providerType: ProviderType) {
-        sharedPrefs.edit().remove(providerType.name).apply()
-    }
-
-    fun hasApiKey(providerType: ProviderType): Boolean {
-        return !sharedPrefs.getString(providerType.name, null).isNullOrBlank()
+    fun deleteApiKey(id: String) {
+        sharedPrefs.edit().remove(id).apply()
     }
 }

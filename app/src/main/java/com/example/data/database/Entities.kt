@@ -42,3 +42,15 @@ data class MessageEntity(
     val tokenCount: Int? = null,
     val modelIdUsed: String? = null
 )
+
+@Entity(tableName = "api_keys")
+data class ApiKeyEntity(
+    @PrimaryKey val id: String,
+    val provider: ProviderType,
+    val label: String,
+    val isEnabled: Boolean,
+    val isPreferred: Boolean,
+    val addedAt: Long,
+    val lastUsedAt: Long?,
+    val failureCount: Int
+)

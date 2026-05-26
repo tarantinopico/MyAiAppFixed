@@ -5,19 +5,24 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.domain.model.ApiKey
 import com.example.domain.model.ProviderType
 import com.example.ui.components.GlassCard
 import com.example.ui.components.GlassSurface
 import com.example.ui.viewmodel.SettingsViewModel
+import androidx.compose.foundation.clickable
+import com.example.ui.viewmodel.SettingsUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,8 +60,7 @@ fun SettingsScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 top = innerPadding.calculateTopPadding() + 8.dp,
                 bottom = innerPadding.calculateBottomPadding() + 16.dp,
@@ -73,14 +77,17 @@ fun SettingsScreen(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
             }
-            items(uiState.apiKeysStatus) { status ->
-                ApiKeyManagementItem(
-                    provider = status.provider,
-                    hasKey = status.hasKey,
-                    onSave = { key -> viewModel.saveApiKey(status.provider, key) },
-                    onDelete = { viewModel.deleteApiKey(status.provider) }
+            
+            items(ProviderType.entries) { provider ->
+                val providerKeys = uiState.apiKeys.filter { it.provider == provider }
+                ProviderKeyManagerCard(
+                    provider = provider,
+                    keys = providerKeys,
+                    onSave = { label, key -> viewModel.saveApiKey(provider, key, label) },
+                    onDelete = { id -> viewModel.deleteApiKey(id) }
                 )
             }
+
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -100,19 +107,77 @@ fun SettingsScreen(
                     Text("Manage Provider Models", style = MaterialTheme.typography.titleMedium)
                 }
             }
+
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                AdvancedSettingsSection(
+                    uiState = uiState,
+                    onToggleMarkdown = viewModel::toggleMarkdown,
+                    onToggleHtml = viewModel::toggleHtml,
+                    onToggleFailover = viewModel::toggleFailover,
+                    onToggleCompact = viewModel::toggleCompact
+                )
+            }
         }
     }
 }
 
 @Composable
-fun ApiKeyManagementItem(
-    provider: ProviderType,
-    hasKey: Boolean,
-    onSave: (String) -> Unit,
-    onDelete: () -> Unit
+fun AdvancedSettingsSection(
+    uiState: SettingsUiState,
+    onToggleMarkdown: () -> Unit,
+    onToggleHtml: () -> Unit,
+    onToggleFailover: () -> Unit,
+    onToggleCompact: () -> Unit
 ) {
+    Text(
+        text = "Advanced Settings",
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.onBackground,
+        modifier = Modifier.padding(vertical = 8.dp)
+    )
+    GlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        elevation = 2.dp
+    ) {
+        Column {
+            SettingsToggleItem("Render Markdown", uiState.markdownEnabled, onToggleMarkdown)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            SettingsToggleItem("Render HTML (Caution)", uiState.htmlEnabled, onToggleHtml)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            SettingsToggleItem("Enable Provider Failover", uiState.autoFailoverEnabled, onToggleFailover)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            SettingsToggleItem("Compact Mode", uiState.compactMode, onToggleCompact)
+        }
+    }
+}
+
+@Composable
+fun SettingsToggleItem(title: String, checked: Boolean, onToggle: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(title, style = MaterialTheme.typography.bodyLarge)
+        Switch(checked = checked, onCheckedChange = { onToggle() })
+    }
+}
+
+@Composable
+fun ProviderKeyManagerCard(
+    provider: ProviderType,
+    keys: List<ApiKey>,
+    onSave: (String, String) -> Unit,
+    onDelete: (String) -> Unit
+) {
+    var showAddForm by remember { mutableStateOf(false) }
     var keyInput by remember { mutableStateOf("") }
-    var showKey by remember { mutableStateOf(false) }
+    var labelInput by remember { mutableStateOf("") }
 
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
@@ -120,48 +185,90 @@ fun ApiKeyManagementItem(
         elevation = 2.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = provider.name, 
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (hasKey) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Ready", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
-                    Spacer(modifier = Modifier.weight(1f))
-                    TextButton(onClick = onDelete) {
-                        Text("Remove Key", color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            } else {
-                OutlinedTextField(
-                    value = keyInput,
-                    onValueChange = { keyInput = it },
-                    label = { Text("API Key") },
-                    visualTransformation = if (showKey) VisualTransformation.None else PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = provider.name, 
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
+                IconButton(onClick = { showAddForm = !showAddForm }, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Key", tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+            
+            if (keys.isEmpty() && !showAddForm) {
+                Text("No keys configured", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp))
+            }
+
+            keys.forEach { key ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp), 
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = { showKey = !showKey }) {
-                        Text(if (showKey) "Hide" else "Show")
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(key.label, style = MaterialTheme.typography.bodyLarge)
+                            if (key.isPreferred) {
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(Icons.Default.CheckCircle, contentDescription = "Preferred", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                            }
+                        }
+                        Text(if (key.failureCount > 0) "${key.failureCount} Failures" else "Healthy", style = MaterialTheme.typography.labelSmall, color = if(key.failureCount > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
                     }
-                    Button(
-                        onClick = {
-                            onSave(keyInput)
-                            keyInput = ""
-                        },
-                        shape = MaterialTheme.shapes.medium
+                    TextButton(onClick = { onDelete(key.id) }) {
+                        Text("Remove", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
+
+            if (showAddForm) {
+                Column(modifier = Modifier.padding(top = 16.dp)) {
+                    OutlinedTextField(
+                        value = labelInput,
+                        onValueChange = { labelInput = it },
+                        label = { Text("Label (e.g. Work Key)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = keyInput,
+                        onValueChange = { keyInput = it },
+                        label = { Text("API Key") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium,
+                        singleLine = true
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        Text("Save Key")
+                        TextButton(onClick = { showAddForm = false }) {
+                            Text("Cancel")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(onClick = {
+                            if (keyInput.isNotBlank()) {
+                                onSave(labelInput.ifBlank { "Default Key" }, keyInput)
+                                keyInput = ""
+                                labelInput = ""
+                                showAddForm = false
+                            }
+                        }) {
+                            Text("Save")
+                        }
                     }
                 }
             }
         }
     }
 }
+

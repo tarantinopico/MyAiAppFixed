@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -95,7 +96,7 @@ fun ChatScreen(
             }
         },
         bottomBar = {
-            ChatComposer(
+            AdvancedChatComposer(
                 text = uiState.currentInput,
                 isStreaming = uiState.isStreaming,
                 onTextChanged = { viewModel.onInputChanged(it) },
@@ -108,19 +109,31 @@ fun ChatScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 8.dp),
-                contentPadding = PaddingValues(
-                    top = innerPadding.calculateTopPadding() + 8.dp,
-                    bottom = innerPadding.calculateBottomPadding() + 16.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(uiState.messages, key = { it.id }) { msg ->
-                    ChatMessageItem(message = msg)
+            if (uiState.messages.isEmpty()) {
+                Box(modifier = Modifier.weight(1f).padding(innerPadding)) {
+                    com.example.ui.components.EmptyChatState(
+                        provider = uiState.activeProvider,
+                        onSuggestionClick = { suggestion ->
+                            viewModel.onInputChanged(suggestion)
+                            viewModel.sendMessage()
+                        }
+                    )
+                }
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp),
+                    contentPadding = PaddingValues(
+                        top = innerPadding.calculateTopPadding() + 8.dp,
+                        bottom = innerPadding.calculateBottomPadding() + 16.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(uiState.messages, key = { it.id }) { msg ->
+                        ChatMessageItem(message = msg)
+                    }
                 }
             }
         }
@@ -199,87 +212,14 @@ fun ProviderModelDropdown(
     }
 }
 
-@Composable
-fun ChatComposer(
-    text: String,
-    isStreaming: Boolean,
-    onTextChanged: (String) -> Unit,
-    onSend: () -> Unit,
-    onStop: () -> Unit
-) {
-    GlassSurface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .imePadding()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(28.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 8.dp, vertical = 8.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            TextField(
-                value = text,
-                onValueChange = onTextChanged,
-                placeholder = { Text("Ask anything...", style = MaterialTheme.typography.bodyLarge) },
-                modifier = Modifier
-                    .weight(1f)
-                    .defaultMinSize(minHeight = 44.dp),
-                shape = RoundedCornerShape(24.dp),
-                maxLines = 6,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = MaterialTheme.colorScheme.primary
-                ),
-                textStyle = MaterialTheme.typography.bodyLarge
-            )
-
-            AnimatedVisibility(
-                visible = isStreaming || text.isNotBlank(),
-                enter = fadeIn() + slideInVertically(initialOffsetY = { 20 }),
-                exit = fadeOut()
-            ) {
-                if (isStreaming) {
-                    IconButton(
-                        onClick = onStop,
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(MaterialTheme.colorScheme.errorContainer, CircleShape)
-                    ) {
-                        Icon(
-                            Icons.Default.Stop,
-                            contentDescription = "Stop",
-                            tint = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    }
-                } else {
-                    IconButton(
-                        onClick = onSend,
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape)
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send,
-                            contentDescription = "Send",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun ChatMessageItem(message: ChatMessage) {
+    if (message.role == MessageRole.SYSTEM) {
+        SystemMessageItem(message)
+        return
+    }
+
     val isUser = message.role == MessageRole.USER
     val alignment = if (isUser) Alignment.End else Alignment.Start
     val bgColor = if (isUser) MaterialTheme.colorScheme.primary.copy(alpha = 0.9f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
@@ -291,12 +231,29 @@ fun ChatMessageItem(message: ChatMessage) {
             .padding(horizontal = 8.dp),
         horizontalAlignment = alignment
     ) {
+        if (!isUser) {
+            Row(
+                modifier = Modifier.padding(bottom = 6.dp, start = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // simple avatar representation
+                Box(
+                    modifier = Modifier.size(24.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("AI", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(message.modelIdUsed ?: "Assistant", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
         GlassCard(
             shape = RoundedCornerShape(
-                topStart = 24.dp,
-                topEnd = 24.dp,
-                bottomStart = if(isUser) 24.dp else 4.dp,
-                bottomEnd = if(isUser) 4.dp else 24.dp
+                topStart = if(isUser) 24.dp else 4.dp,
+                topEnd = if(isUser) 4.dp else 24.dp,
+                bottomStart = 24.dp,
+                bottomEnd = 24.dp
             ),
             modifier = Modifier.widthIn(max = 340.dp),
             elevation = 1.dp
@@ -325,10 +282,12 @@ fun ChatMessageItem(message: ChatMessage) {
                         )
                     }
                     Text(
-                        text = message.errorMessage,
+                        text = message.errorMessage ?: "",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium
                     )
+                } else if (message.isStreaming && message.content.isEmpty()) {
+                    com.example.ui.components.AnimatedTypingIndicator(modifier = Modifier.padding(vertical = 4.dp))
                 } else {
                     if (isUser) {
                         Text(
@@ -338,7 +297,10 @@ fun ChatMessageItem(message: ChatMessage) {
                             modifier = Modifier.padding(bottom = 2.dp)
                         )
                     } else {
-                        MarkdownText(text = message.content, color = textColor)
+                        com.example.ui.components.PremiumMarkdownRenderer(
+                            markdown = message.content,
+                            textColor = textColor
+                        )
                     }
                 }
                 
@@ -348,14 +310,31 @@ fun ChatMessageItem(message: ChatMessage) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 10.dp),
-                        horizontalArrangement = Arrangement.Start,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val genTime = message.generationTimeMs?.let { "${it / 1000.0}s" }
-                        val tokens = message.tokenCount?.let { "$it tok" }
-                        val model = message.modelIdUsed?.take(12)
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            val context = androidx.compose.ui.platform.LocalContext.current
+                            val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+                            IconButton(
+                                onClick = {
+                                    clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content))
+                                },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.ContentCopy,
+                                    contentDescription = "Copy",
+                                    tint = textColor.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        }
                         
-                        val metaList = listOfNotNull(model, genTime, tokens)
+                        val genTime = message.generationTimeMs?.let { "${String.format(java.util.Locale.US, "%.1f", it / 1000.0)}s" }
+                        val tokens = message.tokenCount?.let { "$it tok" }
+                        
+                        val metaList = listOfNotNull(genTime, tokens)
                         if (metaList.isNotEmpty()) {
                             Text(
                                 text = metaList.joinToString(" • "),
@@ -371,28 +350,35 @@ fun ChatMessageItem(message: ChatMessage) {
 }
 
 @Composable
-fun MarkdownText(text: String, color: androidx.compose.ui.graphics.Color) {
-    if (text.isEmpty()) return
-    
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val markwon = remember(context) { io.noties.markwon.Markwon.create(context) }
-    
-    AndroidView(
-        modifier = Modifier,
-        factory = { ctx ->
-            android.widget.TextView(ctx).apply {
-                layoutParams = android.view.ViewGroup.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+fun SystemMessageItem(message: ChatMessage) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Stop, // Will replace with Info/Check later if needed
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
-                setTextColor(color.toArgb())
-                textSize = 16f
-                setLineSpacing(0f, 1.2f)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = message.content,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             }
-        },
-        update = { textView ->
-            markwon.setMarkdown(textView, text)
-            textView.setTextColor(color.toArgb())
         }
-    )
+    }
 }
+
