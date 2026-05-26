@@ -27,7 +27,7 @@ class ChatRepository(
     ): Flow<ChatStreamEvent> = flow {
         val apiKey = settingsRepository.getApiKey(providerType)
         if (apiKey.isNullOrBlank()) {
-            emit(ChatStreamEvent.Error("API Key missing or unauthorized for \$providerType"))
+            emit(ChatStreamEvent.Error("API Key missing or unauthorized for $providerType"))
             return@flow
         }
 

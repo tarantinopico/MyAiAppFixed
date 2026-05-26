@@ -95,7 +95,7 @@ fun ConversationItem(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = "\${conversation.selectedProvider} • \${conversation.selectedModelId}",
+                    text = "${conversation.selectedProvider} • ${conversation.selectedModelId}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

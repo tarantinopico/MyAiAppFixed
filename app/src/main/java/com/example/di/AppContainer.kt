@@ -52,7 +52,7 @@ class AppContainer(private val applicationContext: Context) {
 
     val groqRetrofit by lazy {
         Retrofit.Builder()
-            .baseUrl("https://api.groq.com/")
+            .baseUrl("https://api.groq.com/openai/")
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()

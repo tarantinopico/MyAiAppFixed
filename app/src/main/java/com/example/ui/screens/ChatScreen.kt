@@ -114,7 +114,7 @@ fun ProviderModelDropdown(
         onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
-            value = "\${selectedProvider.name} - \$selectedModelId",
+            value = "${selectedProvider.name} - $selectedModelId",
             onValueChange = {},
             readOnly = true,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
