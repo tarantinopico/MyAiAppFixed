@@ -2,14 +2,22 @@ package com.example.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.FolderZip
+import androidx.compose.material.icons.outlined.LibraryBooks
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,8 +26,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.ui.components.GlassSurface
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedChatComposer(
     text: String,
@@ -30,6 +39,30 @@ fun AdvancedChatComposer(
     onSend: () -> Unit,
     onStop: () -> Unit
 ) {
+    var showPlusMenu by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+
+    if (showPlusMenu) {
+        ModalBottomSheet(
+            onDismissRequest = { showPlusMenu = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        ) {
+            ComposerPlusMenuSheet(
+                isAgentModeEnabled = isAgentModeEnabled,
+                onToggleAgentMode = { 
+                    onAgentModeChanged(!isAgentModeEnabled)
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { showPlusMenu = false }
+                },
+                onDismiss = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { showPlusMenu = false }
+                }
+            )
+        }
+    }
+
     GlassSurface(
         modifier = Modifier
             .fillMaxWidth()
@@ -43,24 +76,34 @@ fun AdvancedChatComposer(
                 .fillMaxWidth()
                 .padding(horizontal = 4.dp, vertical = 4.dp)
         ) {
-            // Agent Mode Toggle Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            // Agent Action Chip
+            AnimatedVisibility(
+                visible = isAgentModeEnabled,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
             ) {
-                Text(
-                    text = if (isAgentModeEnabled) "✨ Agent Mode Active" else "Chat Mode",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isAgentModeEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
-                Switch(
-                    checked = isAgentModeEnabled,
-                    onCheckedChange = onAgentModeChanged,
-                    modifier = Modifier.height(24.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        shape = CircleShape,
+                        modifier = Modifier.clip(CircleShape).clickable { onAgentModeChanged(false) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                            Text("Agent Mode", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                        }
+                    }
+                }
             }
             
             Row(
@@ -69,12 +112,12 @@ fun AdvancedChatComposer(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 IconButton(
-                    onClick = { /* Implement attachment logic if needed */ },
+                    onClick = { showPlusMenu = true },
                     modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         Icons.Default.Add,
-                        contentDescription = "Attach",
+                        contentDescription = "Menu",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.size(26.dp)
                     )
@@ -165,5 +208,61 @@ fun AdvancedChatComposer(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ComposerPlusMenuSheet(
+    isAgentModeEnabled: Boolean,
+    onToggleAgentMode: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp, horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        val menuItems = listOf(
+            Triple(Icons.Outlined.AutoAwesome, if (isAgentModeEnabled) "Disable Agent" else "Enable Agent", onToggleAgentMode),
+            Triple(Icons.Outlined.Description, "Upload File", { onDismiss() }),
+            Triple(Icons.Outlined.LibraryBooks, "Use Context", { onDismiss() }),
+            Triple(Icons.Outlined.FolderZip, "Attach Generated File", { onDismiss() }),
+        )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            menuItems.forEach { (icon, label, onClick) ->
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .clickable(onClick = onClick)
+                        .padding(8.dp)
+                        .weight(1f)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(icon, contentDescription = null, modifier = Modifier.size(28.dp))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }

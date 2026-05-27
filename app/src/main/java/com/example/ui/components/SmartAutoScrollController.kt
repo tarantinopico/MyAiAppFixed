@@ -14,10 +14,19 @@ fun rememberSmartAutoScrollState(
     val coroutineScope = rememberCoroutineScope()
     val controller = remember { SmartAutoScrollController(listState, coroutineScope) }
 
+    // Use derived state to observe if we are at bottom
+    val isAtBottom by remember {
+        derivedStateOf {
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisibleItem?.index == listState.layoutInfo.totalItemsCount - 1
+        }
+    }
+
     LaunchedEffect(isStreaming, itemCount) {
         if (isStreaming && controller.isAutoFollowEnabled) {
             if (itemCount > 0) {
-                listState.animateScrollToItem(itemCount - 1)
+                // Large offset to scroll to the very bottom of the item
+                listState.animateScrollToItem(itemCount - 1, Int.MAX_VALUE)
             }
         }
     }
@@ -26,8 +35,8 @@ fun rememberSmartAutoScrollState(
         snapshotFlow { listState.firstVisibleItemIndex to listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
             .collectLatest { (first, last) ->
                 if (listState.isScrollInProgress) {
-                    val isAtBottom = last != null && last >= itemCount - 1
-                    if (!isAtBottom) {
+                    val atBottom = last != null && last >= itemCount - 1
+                    if (!atBottom) {
                         controller.disableAutoFollow()
                     } else {
                         controller.enableAutoFollow()
@@ -58,7 +67,7 @@ class SmartAutoScrollController(
         enableAutoFollow()
         scope.launch {
             if (itemCount > 0) {
-                listState.animateScrollToItem(itemCount - 1)
+                listState.animateScrollToItem(itemCount - 1, Int.MAX_VALUE)
             }
         }
     }

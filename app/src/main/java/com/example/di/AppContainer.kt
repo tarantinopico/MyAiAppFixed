@@ -102,4 +102,6 @@ class AppContainer(private val applicationContext: Context) {
             cerebrasClient
         )
     }
+
+    val sessionRestoreManager by lazy { com.example.repository.SessionRestoreManager(applicationContext) }
 }

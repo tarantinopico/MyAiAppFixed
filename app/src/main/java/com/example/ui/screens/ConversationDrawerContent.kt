@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +26,10 @@ import com.example.domain.model.ChatConversation
 import com.example.ui.viewmodel.ChatViewModel
 import com.example.ui.viewmodel.ConversationListViewModel
 import com.example.ui.components.GlassCard
+
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.filled.MoreVert
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,15 +97,52 @@ fun ConversationDrawerContent(
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(bottom = 16.dp, top = 16.dp)
         ) {
-            items(uiState.conversations, key = { it.id }) { conv ->
-                ConversationItem(
-                    conversation = conv,
-                    onClick = {
-                        chatViewModel.loadConversation(conv.id)
-                        onCloseDrawer()
-                    },
-                    onDelete = { listViewModel.deleteConversation(conv.id) }
-                )
+            val pinned = uiState.conversations.filter { it.pinned }
+            val recent = uiState.conversations.filter { !it.pinned }
+
+            if (pinned.isNotEmpty()) {
+                item {
+                    Text(
+                        "Pinned",
+                        modifier = Modifier.padding(start = 24.dp, bottom = 8.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                items(pinned, key = { "pinned-${it.id}" }) { conv ->
+                    ConversationItem(
+                        conversation = conv,
+                        onClick = {
+                            chatViewModel.loadConversation(conv.id)
+                            onCloseDrawer()
+                        },
+                        onTogglePin = { listViewModel.togglePin(conv) },
+                        onDelete = { listViewModel.deleteConversation(conv.id) }
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+            }
+
+            if (recent.isNotEmpty()) {
+                item {
+                    Text(
+                        "Recent",
+                        modifier = Modifier.padding(start = 24.dp, bottom = 8.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                items(recent, key = { "recent-${it.id}" }) { conv ->
+                    ConversationItem(
+                        conversation = conv,
+                        onClick = {
+                            chatViewModel.loadConversation(conv.id)
+                            onCloseDrawer()
+                        },
+                        onTogglePin = { listViewModel.togglePin(conv) },
+                        onDelete = { listViewModel.deleteConversation(conv.id) }
+                    )
+                }
             }
         }
     }
@@ -110,8 +152,11 @@ fun ConversationDrawerContent(
 fun ConversationItem(
     conversation: ChatConversation,
     onClick: () -> Unit,
+    onTogglePin: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var showMenu by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+
     GlassCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -143,13 +188,37 @@ fun ConversationItem(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
-                Icon(
-                    Icons.Default.Delete, 
-                    contentDescription = "Delete", 
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
+            Box {
+                IconButton(onClick = { showMenu = true }, modifier = Modifier.size(36.dp)) {
+                    Icon(
+                        Icons.Default.MoreVert, 
+                        contentDescription = "Options", 
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(if (conversation.pinned) "Unpin" else "Pin") },
+                        leadingIcon = { Icon(if (conversation.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, contentDescription = null) },
+                        onClick = { 
+                            showMenu = false
+                            onTogglePin()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                        onClick = { 
+                            showMenu = false
+                            onDelete()
+                        }
+                    )
+                }
             }
         }
     }

@@ -13,14 +13,15 @@ class AppViewModelFactory(
     private val chatRepository: ChatRepository,
     private val conversationRepository: ConversationRepository,
     private val modelRepository: ModelRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val sessionRestoreManager: com.example.repository.SessionRestoreManager
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(ChatViewModel::class.java) -> {
-                ChatViewModel(chatRepository, conversationRepository, modelRepository) as T
+                ChatViewModel(chatRepository, conversationRepository, modelRepository, sessionRestoreManager) as T
             }
             modelClass.isAssignableFrom(ConversationListViewModel::class.java) -> {
                 ConversationListViewModel(conversationRepository) as T

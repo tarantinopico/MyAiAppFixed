@@ -27,8 +27,11 @@ data class ChatUiState(
 class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val conversationRepository: ConversationRepository,
-    private val modelRepository: ModelRepository
+    private val modelRepository: ModelRepository,
+    private val sessionRestoreManager: com.example.repository.SessionRestoreManager
 ) : ViewModel() {
+
+    private val draftPersistenceManager = DraftPersistenceManager(conversationRepository, viewModelScope)
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
@@ -41,6 +44,12 @@ class ChatViewModel(
         viewModelScope.launch {
             modelRepository.seedModelsIfEmpty()
             
+            // Check session restore
+            val lastId = sessionRestoreManager.lastActiveConversationId.value
+            if (lastId != null) {
+                loadConversation(lastId)
+            }
+
             // Collect models to update dropdown
             modelRepository.getAllModels().collect { models ->
                 _uiState.update { it.copy(models = models) }
@@ -66,6 +75,7 @@ class ChatViewModel(
     fun loadConversation(id: Long) {
         if (activeConversationId == id) return
         activeConversationId = id
+        sessionRestoreManager.setLastActiveConversation(id)
         messagesJob?.cancel()
         streamJob?.cancel()
 
@@ -91,6 +101,7 @@ class ChatViewModel(
 
     fun startNewConversation() {
         activeConversationId = null
+        sessionRestoreManager.setLastActiveConversation(null)
         messagesJob?.cancel()
         streamJob?.cancel()
         _uiState.update {
@@ -166,12 +177,7 @@ class ChatViewModel(
 
     fun onInputChanged(text: String) {
         _uiState.update { it.copy(currentInput = text) }
-        val conv = _uiState.value.conversation
-        if (conv != null) {
-            viewModelScope.launch {
-                conversationRepository.updateConversation(conv.copy(draftText = text))
-            }
-        }
+        draftPersistenceManager.saveDraft(activeConversationId, text)
     }
 
     fun sendMessage() {
