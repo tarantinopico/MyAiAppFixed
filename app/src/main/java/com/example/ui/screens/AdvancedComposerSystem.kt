@@ -267,9 +267,7 @@ fun ComposerPlusMenuSheet(
     ) {
         val menuItems = listOf(
             Triple(Icons.Outlined.AutoAwesome, if (isAgentModeEnabled) "Disable Agent" else "Agent", onToggleAgentMode),
-            Triple(Icons.Default.Search, if (isSearchModeEnabled) "Disable Search" else "Search", onToggleSearchMode),
-            Triple(Icons.Outlined.Description, "Upload File", { onDismiss() }),
-            Triple(Icons.Outlined.LibraryBooks, "Use Context", { onDismiss() }),
+            Triple(Icons.Default.Search, if (isSearchModeEnabled) "Disable Search" else "Search", onToggleSearchMode)
         )
         
         Row(

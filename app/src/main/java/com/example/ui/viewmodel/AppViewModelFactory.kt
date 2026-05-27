@@ -15,7 +15,8 @@ class AppViewModelFactory(
     private val modelRepository: ModelRepository,
     private val settingsRepository: SettingsRepository,
     private val sessionRestoreManager: com.example.repository.SessionRestoreManager,
-    private val webSearchManager: com.example.domain.search.WebSearchManager
+    private val webSearchManager: com.example.domain.search.WebSearchManager,
+    private val customProviderRepository: com.example.repository.CustomProviderRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -32,6 +33,9 @@ class AppViewModelFactory(
             }
             modelClass.isAssignableFrom(ModelManagementViewModel::class.java) -> {
                 ModelManagementViewModel(modelRepository) as T
+            }
+            modelClass.isAssignableFrom(CustomProvidersViewModel::class.java) -> {
+                CustomProvidersViewModel(customProviderRepository) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }

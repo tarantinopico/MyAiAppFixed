@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,6 +28,7 @@ object NavigationRoute {
     const val CHAT = "chat"
     const val SETTINGS = "settings"
     const val MODELS = "models"
+    const val CUSTOM_PROVIDERS = "custom_providers"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +44,8 @@ fun MainAppScaffold(appContainer: AppContainer) {
         appContainer.modelRepository,
         appContainer.settingsRepository,
         appContainer.sessionRestoreManager,
-        appContainer.webSearchManager
+        appContainer.webSearchManager,
+        appContainer.customProviderRepository
     )
 
     val chatViewModel: ChatViewModel = viewModel(factory = factory)
@@ -141,6 +144,7 @@ fun MainAppScaffold(appContainer: AppContainer) {
                     SettingsScreen(
                         onBack = { navController.popBackStack() },
                         onNavigateToModels = { navController.navigate(NavigationRoute.MODELS) },
+                        onNavigateToCustomProviders = { navController.navigate(NavigationRoute.CUSTOM_PROVIDERS) },
                         viewModel = viewModel(factory = factory)
                     )
                 }
@@ -148,6 +152,16 @@ fun MainAppScaffold(appContainer: AppContainer) {
                     ModelManagementScreen(
                         onBack = { navController.popBackStack() },
                         viewModel = viewModel(factory = factory)
+                    )
+                }
+                composable(NavigationRoute.CUSTOM_PROVIDERS) {
+                    val vm: com.example.ui.viewmodel.CustomProvidersViewModel = viewModel(factory = factory)
+                    val providers by vm.providers.collectAsStateWithLifecycle()
+                    CustomProviderEditorScreen(
+                        providers = providers,
+                        onSave = { vm.addProvider(it) },
+                        onDelete = { vm.deleteProvider(it) },
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }

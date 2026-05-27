@@ -9,7 +9,11 @@ data class ProviderModel(
     val modelId: String,
     val isDefault: Boolean,
     val sortOrder: Int,
-    val isSeeded: Boolean = false
+    val isSeeded: Boolean = false,
+    val contextLength: Int? = null,
+    val isReasoning: Boolean = false,
+    val isVision: Boolean = false,
+    val supportsTools: Boolean = false
 )
 
 data class ChatConversation(

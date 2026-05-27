@@ -30,6 +30,7 @@ import com.example.ui.viewmodel.SettingsUiState
 fun SettingsScreen(
     onBack: () -> Unit,
     onNavigateToModels: () -> Unit,
+    onNavigateToCustomProviders: () -> Unit,
     viewModel: SettingsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -112,6 +113,17 @@ fun SettingsScreen(
                     )
                 ) {
                     Text("Manage Provider Models", style = MaterialTheme.typography.titleMedium)
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = onNavigateToCustomProviders,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
+                    )
+                ) {
+                    Text("Manage Custom Endpoints", style = MaterialTheme.typography.titleMedium)
                 }
             }
 

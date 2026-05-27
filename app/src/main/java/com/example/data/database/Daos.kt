@@ -92,3 +92,33 @@ interface ApiKeyDao {
     @Delete
     suspend fun deleteApiKey(apiKey: ApiKeyEntity)
 }
+
+@Dao
+interface CustomProviderDao {
+    @Query("SELECT * FROM custom_providers ORDER BY sortOrder ASC")
+    fun getAllCustomProviders(): Flow<List<CustomProviderEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCustomProvider(provider: CustomProviderEntity)
+    
+    @Update
+    suspend fun updateCustomProvider(provider: CustomProviderEntity)
+
+    @Delete
+    suspend fun deleteCustomProvider(provider: CustomProviderEntity)
+}
+
+@Dao
+interface PresetDao {
+    @Query("SELECT * FROM presets ORDER BY sortOrder ASC")
+    fun getAllPresets(): Flow<List<PresetEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPreset(preset: PresetEntity)
+    
+    @Update
+    suspend fun updatePreset(preset: PresetEntity)
+
+    @Delete
+    suspend fun deletePreset(preset: PresetEntity)
+}

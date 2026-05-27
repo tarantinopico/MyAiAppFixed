@@ -9,6 +9,7 @@ import com.example.network.CerebrasClient
 import com.example.network.GeminiApi
 import com.example.network.GeminiClient
 import com.example.network.GroqApi
+import com.example.network.GenericOpenAiApi
 import com.example.network.GroqClient
 import com.example.repository.ChatRepository
 import com.example.repository.ConversationRepository
@@ -30,7 +31,7 @@ class AppContainer(private val applicationContext: Context) {
             AppDatabase::class.java,
             "ai_model_aggregator.db"
         )
-        .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5)
+        .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5, AppDatabase.MIGRATION_5_6)
         .build()
     }
 
@@ -89,17 +90,49 @@ class AppContainer(private val applicationContext: Context) {
     val cerebrasClient by lazy { CerebrasClient(cerebrasApi, moshi) }
     val geminiClient by lazy { GeminiClient(geminiApi, moshi) }
 
+    val genericRetrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.openai.com/") // Base URL ignored via @Url
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+    }
+
+    val genericApi: GenericOpenAiApi by lazy { genericRetrofit.create(GenericOpenAiApi::class.java) }
+
+    val openAiClient by lazy { com.example.network.GenericOpenAiCompatibleClient(genericApi, moshi, "https://api.openai.com/") }
+    val anthropicClient by lazy { com.example.network.GenericOpenAiCompatibleClient(genericApi, moshi, "https://api.anthropic.com/") } // Will need custom client later if strictly direct Anthropic
+    val openRouterClient by lazy { com.example.network.GenericOpenAiCompatibleClient(genericApi, moshi, "https://openrouter.ai/api/") }
+    val mistralClient by lazy { com.example.network.GenericOpenAiCompatibleClient(genericApi, moshi, "https://api.mistral.ai/") }
+    val deepSeekClient by lazy { com.example.network.GenericOpenAiCompatibleClient(genericApi, moshi, "https://api.deepseek.com/") }
+    val togetherClient by lazy { com.example.network.GenericOpenAiCompatibleClient(genericApi, moshi, "https://api.together.xyz/") }
+    val ollamaClient by lazy { com.example.network.GenericOpenAiCompatibleClient(genericApi, moshi, "http://localhost:11434/", false) }
+    val localClient by lazy { com.example.network.GenericOpenAiCompatibleClient(genericApi, moshi, "http://localhost:8080/") }
+    val customClient by lazy { com.example.network.GenericOpenAiCompatibleClient(genericApi, moshi, "https://custom.api/") } // Dummy, chatRepo should dynamically create Custom Clients based on DB
+
     // Repositories
     val modelRepository by lazy { ModelRepository(database.modelDao()) }
     val conversationRepository by lazy { ConversationRepository(database.conversationDao(), database.messageDao()) }
     val settingsRepository by lazy { SettingsRepository(multiKeyManager) }
+    val customProviderRepository by lazy { com.example.repository.CustomProviderRepository(database.customProviderDao()) }
     val chatRepository by lazy {
         ChatRepository(
             conversationRepository,
             apiKeyFailoverManager,
+            customProviderRepository,
+            moshi,
+            genericApi,
             groqClient,
             geminiClient,
-            cerebrasClient
+            cerebrasClient,
+            openAiClient,
+            anthropicClient,
+            openRouterClient,
+            mistralClient,
+            deepSeekClient,
+            togetherClient,
+            ollamaClient,
+            localClient
         )
     }
 

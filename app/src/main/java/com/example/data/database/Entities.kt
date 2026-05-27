@@ -13,7 +13,11 @@ data class ProviderModelEntity(
     val modelId: String,
     val isDefault: Boolean,
     val sortOrder: Int,
-    val isSeeded: Boolean
+    val isSeeded: Boolean,
+    val contextLength: Int? = null,
+    val isReasoning: Boolean = false,
+    val isVision: Boolean = false,
+    val supportsTools: Boolean = false
 )
 
 @Entity(tableName = "conversations")
@@ -54,6 +58,28 @@ data class ApiKeyEntity(
     val addedAt: Long,
     val lastUsedAt: Long?,
     val failureCount: Int
+)
+
+@Entity(tableName = "custom_providers")
+data class CustomProviderEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val baseUrl: String,
+    val apiKey: String,
+    val isEnabled: Boolean = true,
+    val sortOrder: Int = 0
+)
+
+@Entity(tableName = "presets")
+data class PresetEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val providerType: ProviderType,
+    val modelId: String,
+    val systemPrompt: String,
+    val temperature: Float = 0.7f,
+    val sortOrder: Int = 0,
+    val iconColorHex: String? = null
 )
 
 data class TokenStatsResult(

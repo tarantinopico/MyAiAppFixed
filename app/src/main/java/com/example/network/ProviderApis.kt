@@ -4,6 +4,17 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 
+interface GenericOpenAiApi {
+    @POST
+    @Headers("Content-Type: application/json", "Accept: text/event-stream")
+    @Streaming
+    suspend fun createChatCompletionStream(
+        @Url url: String,
+        @HeaderMap headers: Map<String, String>,
+        @Body request: ChatCompletionRequest
+    ): Response<ResponseBody>
+}
+
 interface GroqApi {
     @POST("v1/chat/completions")
     @Headers("Content-Type: application/json")

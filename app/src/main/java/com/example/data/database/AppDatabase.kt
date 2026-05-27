@@ -11,9 +11,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ProviderModelEntity::class,
         ConversationEntity::class,
         MessageEntity::class,
-        ApiKeyEntity::class
+        ApiKeyEntity::class,
+        CustomProviderEntity::class,
+        PresetEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -22,6 +24,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun conversationDao(): ConversationDao
     abstract fun messageDao(): MessageDao
     abstract fun apiKeyDao(): ApiKeyDao
+    abstract fun customProviderDao(): CustomProviderDao
+    abstract fun presetDao(): PresetDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -50,6 +54,21 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE messages ADD COLUMN systemEventJson TEXT")
+            }
+        }
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE provider_models ADD COLUMN contextLength INTEGER DEFAULT NULL")
+                database.execSQL("ALTER TABLE provider_models ADD COLUMN isReasoning INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE provider_models ADD COLUMN isVision INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE provider_models ADD COLUMN supportsTools INTEGER NOT NULL DEFAULT 0")
+                
+                database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `custom_providers` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `baseUrl` TEXT NOT NULL, `apiKey` TEXT NOT NULL, `isEnabled` INTEGER NOT NULL, `sortOrder` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+                )
+                database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `presets` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `providerType` TEXT NOT NULL, `modelId` TEXT NOT NULL, `systemPrompt` TEXT NOT NULL, `temperature` REAL NOT NULL, `sortOrder` INTEGER NOT NULL, `iconColorHex` TEXT, PRIMARY KEY(`id`))"
+                )
             }
         }
     }
