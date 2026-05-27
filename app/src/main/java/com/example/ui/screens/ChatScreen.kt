@@ -119,7 +119,7 @@ fun ChatScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = innerPadding.calculateTopPadding(), bottom = innerPadding.calculateBottomPadding())
+                    .padding(innerPadding)
                     .consumeWindowInsets(innerPadding)
                     .imePadding()
             ) {
