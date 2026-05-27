@@ -16,7 +16,8 @@ class AppViewModelFactory(
     private val settingsRepository: SettingsRepository,
     private val sessionRestoreManager: com.example.repository.SessionRestoreManager,
     private val webSearchManager: com.example.domain.search.WebSearchManager,
-    private val customProviderRepository: com.example.repository.CustomProviderRepository
+    private val customProviderRepository: com.example.repository.CustomProviderRepository,
+    private val promptPreferences: com.example.data.repository.PromptPreferences
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
@@ -30,6 +31,9 @@ class AppViewModelFactory(
             }
             modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
                 SettingsViewModel(settingsRepository, conversationRepository) as T
+            }
+            modelClass.isAssignableFrom(com.example.ui.viewmodel.PromptLibraryViewModel::class.java) -> {
+                com.example.ui.viewmodel.PromptLibraryViewModel(promptPreferences) as T
             }
             modelClass.isAssignableFrom(ModelManagementViewModel::class.java) -> {
                 ModelManagementViewModel(modelRepository) as T

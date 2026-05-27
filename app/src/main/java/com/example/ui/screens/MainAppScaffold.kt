@@ -30,6 +30,7 @@ object NavigationRoute {
     const val MODELS = "models"
     const val CUSTOM_PROVIDERS = "custom_providers"
     const val APPEARANCE = "appearance"
+    const val PROMPT_LIBRARY = "prompt_library"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,7 +47,8 @@ fun MainAppScaffold(appContainer: AppContainer) {
         appContainer.settingsRepository,
         appContainer.sessionRestoreManager,
         appContainer.webSearchManager,
-        appContainer.customProviderRepository
+        appContainer.customProviderRepository,
+        appContainer.promptPreferences
     )
 
     val chatViewModel: ChatViewModel = viewModel(factory = factory)
@@ -138,7 +140,22 @@ fun MainAppScaffold(appContainer: AppContainer) {
                     ChatScreen(
                         viewModel = chatViewModel,
                         onOpenDrawer = { scope.launch { drawerState.open() } },
-                        onNavigateToSettings = { navController.navigate(NavigationRoute.SETTINGS) }
+                        onNavigateToSettings = { navController.navigate(NavigationRoute.SETTINGS) },
+                        onNavigateToPromptLibrary = { navController.navigate(NavigationRoute.PROMPT_LIBRARY) }
+                    )
+                }
+                composable(NavigationRoute.PROMPT_LIBRARY) {
+                    val vm: com.example.ui.viewmodel.PromptLibraryViewModel = viewModel(factory = factory)
+                    val prompts by vm.prompts.collectAsStateWithLifecycle()
+                    PromptLibraryScreen(
+                        prompts = prompts,
+                        onSave = { p -> vm.savePrompt(p) },
+                        onDelete = { id -> vm.deletePrompt(id) },
+                        onSelect = { prompt -> 
+                            chatViewModel.onInputChanged(prompt.text)
+                            navController.popBackStack()
+                        },
+                        onBack = { navController.popBackStack() }
                     )
                 }
                 composable(NavigationRoute.SETTINGS) {

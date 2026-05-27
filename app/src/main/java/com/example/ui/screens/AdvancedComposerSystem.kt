@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.UploadFile
@@ -41,7 +42,8 @@ fun AdvancedChatComposer(
     onSearchModeChanged: (Boolean) -> Unit = {},
     onTextChanged: (String) -> Unit,
     onSend: () -> Unit,
-    onStop: () -> Unit
+    onStop: () -> Unit,
+    onNavigateToPromptLibrary: () -> Unit = {}
 ) {
     var showPlusMenu by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -66,6 +68,12 @@ fun AdvancedChatComposer(
                     onSearchModeChanged(!isSearchModeEnabled)
                     onAgentModeChanged(false)
                     scope.launch { sheetState.hide() }.invokeOnCompletion { showPlusMenu = false }
+                },
+                onNavigateToPromptLibrary = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { 
+                        showPlusMenu = false
+                        onNavigateToPromptLibrary()
+                    }
                 },
                 onDismiss = {
                     scope.launch { sheetState.hide() }.invokeOnCompletion { showPlusMenu = false }
@@ -260,6 +268,7 @@ fun ComposerPlusMenuSheet(
     isSearchModeEnabled: Boolean,
     onToggleAgentMode: () -> Unit,
     onToggleSearchMode: () -> Unit,
+    onNavigateToPromptLibrary: () -> Unit,
     onDismiss: () -> Unit
 ) {
     Column(
@@ -270,7 +279,8 @@ fun ComposerPlusMenuSheet(
     ) {
         val menuItems = listOf(
             Triple(Icons.Outlined.AutoAwesome, if (isAgentModeEnabled) "Disable Agent" else "Agent", onToggleAgentMode),
-            Triple(Icons.Default.Search, if (isSearchModeEnabled) "Disable Search" else "Search", onToggleSearchMode)
+            Triple(Icons.Default.Search, if (isSearchModeEnabled) "Disable Search" else "Search", onToggleSearchMode),
+            Triple(Icons.Default.List, "Prompt Library", onNavigateToPromptLibrary)
         )
         
         Row(

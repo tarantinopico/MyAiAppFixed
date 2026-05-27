@@ -51,7 +51,8 @@ import androidx.activity.compose.BackHandler
 fun ChatScreen(
     viewModel: ChatViewModel,
     onOpenDrawer: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToPromptLibrary: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
@@ -164,7 +165,8 @@ fun ChatScreen(
                     onSearchModeChanged = { viewModel.setSearchMode(it) },
                     onTextChanged = { viewModel.onInputChanged(it) },
                     onSend = { viewModel.sendMessage() },
-                    onStop = { viewModel.stopStreaming() }
+                    onStop = { viewModel.stopStreaming() },
+                    onNavigateToPromptLibrary = onNavigateToPromptLibrary
                 )
             }
         }

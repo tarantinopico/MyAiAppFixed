@@ -36,30 +36,48 @@ fun SettingsScreen(
     viewModel: SettingsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("API Keys", "General", "Advanced")
 
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            LiquidGlassSurface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .statusBarsPadding(),
-                shape = MaterialTheme.shapes.large
-            ) {
-                Row(
-                    modifier = Modifier.padding(8.dp).fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+            Column {
+                LiquidGlassSurface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp)
+                        .statusBarsPadding(),
+                    shape = MaterialTheme.shapes.large
                 ) {
-                    IconButton(onClick = onBack, modifier = Modifier.bounceClick { onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                    Row(
+                        modifier = Modifier.padding(8.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBack, modifier = Modifier.bounceClick { onBack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                        }
+                        Text(
+                            "Settings", 
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
                     }
-                    Text(
-                        "Settings", 
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
+                }
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { selectedTabIndex = index },
+                            text = { Text(title, style = MaterialTheme.typography.titleSmall) }
+                        )
+                    }
                 }
             }
         }
@@ -74,81 +92,67 @@ fun SettingsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                Text(
-                    "API Keys", 
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-            }
-            
-            items(ProviderType.entries) { provider ->
-                val providerKeys = uiState.apiKeys.filter { it.provider == provider }
-                ProviderKeyManagerCard(
-                    provider = provider,
-                    keys = providerKeys,
-                    onSave = { label, key -> viewModel.saveApiKey(provider, key, label) },
-                    onDelete = { id -> viewModel.deleteApiKey(id) }
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                TokenStatsSection(uiState.tokenStats)
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Models", 
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onNavigateToModels,
-                    modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { onNavigateToModels() },
-                    shape = MaterialTheme.shapes.large,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                    )
-                ) {
-                    Text("Manage Provider Models", style = MaterialTheme.typography.titleMedium)
+            when (selectedTabIndex) {
+                0 -> { // API Keys
+                    items(ProviderType.entries) { provider ->
+                        val providerKeys = uiState.apiKeys.filter { it.provider == provider }
+                        ProviderKeyManagerCard(
+                            provider = provider,
+                            keys = providerKeys,
+                            onSave = { label, key -> viewModel.saveApiKey(provider, key, label) },
+                            onDelete = { id -> viewModel.deleteApiKey(id) }
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = onNavigateToCustomProviders,
-                    modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { onNavigateToCustomProviders() },
-                    shape = MaterialTheme.shapes.large,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
-                    )
-                ) {
-                    Text("Manage Custom Endpoints", style = MaterialTheme.typography.titleMedium)
+                1 -> { // General
+                    item {
+                        Button(
+                            onClick = onNavigateToModels,
+                            modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { onNavigateToModels() },
+                            shape = MaterialTheme.shapes.large,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                            )
+                        ) {
+                            Text("Manage Provider Models", style = MaterialTheme.typography.titleMedium)
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = onNavigateToCustomProviders,
+                            modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { onNavigateToCustomProviders() },
+                            shape = MaterialTheme.shapes.large,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
+                            )
+                        ) {
+                            Text("Manage Custom Endpoints", style = MaterialTheme.typography.titleMedium)
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = onNavigateToAppearance,
+                            modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { onNavigateToAppearance() },
+                            shape = MaterialTheme.shapes.large,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f)
+                            )
+                        ) {
+                            Text("Appearance & Themes", style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = onNavigateToAppearance,
-                    modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { onNavigateToAppearance() },
-                    shape = MaterialTheme.shapes.large,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f)
-                    )
-                ) {
-                    Text("Appearance & Themes", style = MaterialTheme.typography.titleMedium)
+                2 -> { // Advanced
+                    item {
+                        AdvancedSettingsSection(
+                            uiState = uiState,
+                            onToggleMarkdown = viewModel::toggleMarkdown,
+                            onToggleHtml = viewModel::toggleHtml,
+                            onToggleFailover = viewModel::toggleFailover,
+                            onToggleCompact = viewModel::toggleCompact
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        TokenStatsSection(uiState.tokenStats)
+                    }
                 }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                AdvancedSettingsSection(
-                    uiState = uiState,
-                    onToggleMarkdown = viewModel::toggleMarkdown,
-                    onToggleHtml = viewModel::toggleHtml,
-                    onToggleFailover = viewModel::toggleFailover,
-                    onToggleCompact = viewModel::toggleCompact
-                )
             }
         }
     }

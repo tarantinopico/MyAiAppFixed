@@ -115,6 +115,7 @@ class AppContainer(private val applicationContext: Context) {
     val conversationRepository by lazy { ConversationRepository(database.conversationDao(), database.messageDao()) }
     val settingsRepository by lazy { SettingsRepository(multiKeyManager) }
     val customProviderRepository by lazy { com.example.repository.CustomProviderRepository(database.customProviderDao()) }
+    val promptPreferences by lazy { com.example.data.repository.PromptPreferences(applicationContext) }
     val chatRepository by lazy {
         ChatRepository(
             conversationRepository,

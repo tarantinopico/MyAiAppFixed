@@ -32,6 +32,8 @@ import com.example.ui.components.premium.bounceClick
 
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.automirrored.outlined.Message
 import androidx.compose.material.icons.filled.MoreVert
 
 @Composable
@@ -44,24 +46,52 @@ fun ConversationDrawerContent(
     val uiState by listViewModel.uiState.collectAsStateWithLifecycle()
     var showNewChatSheet by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))) {
+        // Redesigned Header
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 8.dp, top = 24.dp, bottom = 12.dp)
-                .statusBarsPadding(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("History", style = MaterialTheme.typography.titleLarge)
-            IconButton(onClick = {
-                showNewChatSheet = true
-            }) {
-                Icon(
-                    Icons.Default.Add, 
-                    contentDescription = "New Chat",
-                    tint = MaterialTheme.colorScheme.primary
+                .background(
+                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                            Color.Transparent
+                        )
+                    )
                 )
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 24.dp)
+        ) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Outlined.AutoAwesome, 
+                        contentDescription = "Logo",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    ) // Placeholder for App Logo
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        "Operant AI", 
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = { showNewChatSheet = true },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "New Chat", modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("New Chat")
+                    }
+                }
             }
         }
         
@@ -97,7 +127,7 @@ fun ConversationDrawerContent(
         
         LazyColumn(
             modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(bottom = 16.dp, top = 16.dp)
+            contentPadding = PaddingValues(bottom = 16.dp, top = 8.dp)
         ) {
             val pinned = uiState.conversations.filter { it.pinned }
             val recent = uiState.conversations.filter { !it.pinned }
@@ -106,7 +136,7 @@ fun ConversationDrawerContent(
                 item {
                     Text(
                         "Pinned",
-                        modifier = Modifier.padding(start = 24.dp, bottom = 8.dp),
+                        modifier = Modifier.padding(start = 24.dp, bottom = 8.dp, top = 8.dp),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -122,14 +152,13 @@ fun ConversationDrawerContent(
                         onDelete = { listViewModel.deleteConversation(conv.id) }
                     )
                 }
-                item { Spacer(modifier = Modifier.height(16.dp)) }
             }
 
             if (recent.isNotEmpty()) {
                 item {
                     Text(
                         "Recent",
-                        modifier = Modifier.padding(start = 24.dp, bottom = 8.dp),
+                        modifier = Modifier.padding(start = 24.dp, bottom = 8.dp, top = 16.dp),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -162,7 +191,7 @@ fun ConversationItem(
     DynamicGlassCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp)
             .bounceClick { onClick() },
         shape = RoundedCornerShape(16.dp),
         elevation = 0.dp
@@ -173,6 +202,12 @@ fun ConversationItem(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Outlined.Message, // Generic icon for chat
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp).padding(end = 12.dp)
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = conversation.title.ifEmpty { "New Conversation" },
@@ -184,7 +219,7 @@ fun ConversationItem(
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = "${conversation.selectedProvider.name} • ${conversation.selectedModelId}",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
