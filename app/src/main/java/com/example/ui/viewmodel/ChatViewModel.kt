@@ -21,6 +21,7 @@ data class ChatUiState(
     val availableProviders: List<ProviderType> = ProviderType.entries.toList(),
     val models: List<ProviderModel> = emptyList(),
     val isAgentModeEnabled: Boolean = false,
+    val isSearchModeEnabled: Boolean = false,
     val selectedFileToPreview: GeneratedFile? = null
 )
 
@@ -28,7 +29,8 @@ class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val conversationRepository: ConversationRepository,
     private val modelRepository: ModelRepository,
-    private val sessionRestoreManager: com.example.repository.SessionRestoreManager
+    private val sessionRestoreManager: com.example.repository.SessionRestoreManager,
+    private val webSearchManager: com.example.domain.search.WebSearchManager
 ) : ViewModel() {
 
     private val draftPersistenceManager = DraftPersistenceManager(conversationRepository, viewModelScope)
@@ -168,7 +170,11 @@ class ChatViewModel(
     }
 
     fun setAgentMode(enabled: Boolean) {
-        _uiState.update { it.copy(isAgentModeEnabled = enabled) }
+        _uiState.update { it.copy(isAgentModeEnabled = enabled, isSearchModeEnabled = if (enabled) false else it.isSearchModeEnabled) }
+    }
+
+    fun setSearchMode(enabled: Boolean) {
+        _uiState.update { it.copy(isSearchModeEnabled = enabled, isAgentModeEnabled = if (enabled) false else it.isAgentModeEnabled) }
     }
     
     fun setPreviewFile(file: GeneratedFile?) {
@@ -218,7 +224,46 @@ class ChatViewModel(
             val assistantMsg = ChatMessage(conversationId = convId, role = MessageRole.ASSISTANT, content = "", isStreaming = true)
             val assistantMsgId = conversationRepository.insertMessage(assistantMsg)
 
-            streamResponse(convId, assistantMsgId, provider, model)
+            if (_uiState.value.isSearchModeEnabled) {
+                _uiState.update { it.copy(isSearchModeEnabled = false, isStreaming = true) }
+                
+                val eventsJob = viewModelScope.launch {
+                    try {
+                        webSearchManager.searchEvents.collect { event ->
+                            if (event != null) {
+                                val currentAssistantMsg = conversationRepository.getMessagesSync(convId).find { it.id == assistantMsgId }
+                                if (currentAssistantMsg != null) {
+                                    conversationRepository.updateMessage(currentAssistantMsg.copy(systemEvent = event))
+                                    loadConversation(convId)
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+                
+                // Do the actual search
+                val searchContext = try {
+                    webSearchManager.performResearch(input)
+                } catch (e: Exception) {
+                    "Error performing search: ${e.message}"
+                }
+                eventsJob.cancel()
+                
+                // Now insert the silent search context as a system message so the LLM knows
+                val systemContextMsg = ChatMessage(
+                    conversationId = convId,
+                    role = MessageRole.SYSTEM,
+                    content = searchContext
+                )
+                conversationRepository.insertMessage(systemContextMsg)
+                
+                streamResponse(convId, assistantMsgId, provider, model)
+                
+            } else {
+                streamResponse(convId, assistantMsgId, provider, model)
+            }
         }
     }
 

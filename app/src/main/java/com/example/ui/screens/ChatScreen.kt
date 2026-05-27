@@ -119,6 +119,8 @@ fun ChatScreen(
                     isStreaming = uiState.isStreaming,
                     isAgentModeEnabled = uiState.isAgentModeEnabled,
                     onAgentModeChanged = { viewModel.setAgentMode(it) },
+                    isSearchModeEnabled = uiState.isSearchModeEnabled,
+                    onSearchModeChanged = { viewModel.setSearchMode(it) },
                     onTextChanged = { viewModel.onInputChanged(it) },
                     onSend = { viewModel.sendMessage() },
                     onStop = { viewModel.stopStreaming() }

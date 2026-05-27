@@ -103,5 +103,7 @@ class AppContainer(private val applicationContext: Context) {
         )
     }
 
+    private val duckDuckGoProvider by lazy { com.example.data.search.DuckDuckGoSearchProvider() }
+    val webSearchManager by lazy { com.example.domain.search.WebSearchManager(duckDuckGoProvider) }
     val sessionRestoreManager by lazy { com.example.repository.SessionRestoreManager(applicationContext) }
 }

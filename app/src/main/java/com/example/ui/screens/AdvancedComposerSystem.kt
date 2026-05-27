@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -35,6 +36,8 @@ fun AdvancedChatComposer(
     isStreaming: Boolean,
     isAgentModeEnabled: Boolean,
     onAgentModeChanged: (Boolean) -> Unit,
+    isSearchModeEnabled: Boolean = false,
+    onSearchModeChanged: (Boolean) -> Unit = {},
     onTextChanged: (String) -> Unit,
     onSend: () -> Unit,
     onStop: () -> Unit
@@ -52,8 +55,15 @@ fun AdvancedChatComposer(
         ) {
             ComposerPlusMenuSheet(
                 isAgentModeEnabled = isAgentModeEnabled,
+                isSearchModeEnabled = isSearchModeEnabled,
                 onToggleAgentMode = { 
                     onAgentModeChanged(!isAgentModeEnabled)
+                    onSearchModeChanged(false)
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { showPlusMenu = false }
+                },
+                onToggleSearchMode = {
+                    onSearchModeChanged(!isSearchModeEnabled)
+                    onAgentModeChanged(false)
                     scope.launch { sheetState.hide() }.invokeOnCompletion { showPlusMenu = false }
                 },
                 onDismiss = {
@@ -101,6 +111,36 @@ fun AdvancedChatComposer(
                             Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                             Text("Agent Mode", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                             Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                        }
+                    }
+                }
+            }
+
+            // Search Mode Chip
+            AnimatedVisibility(
+                visible = isSearchModeEnabled,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                        shape = CircleShape,
+                        modifier = Modifier.clip(CircleShape).clickable { onSearchModeChanged(false) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(16.dp))
+                            Text("Internet Search", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary)
+                            Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(14.dp))
                         }
                     }
                 }
@@ -214,7 +254,9 @@ fun AdvancedChatComposer(
 @Composable
 fun ComposerPlusMenuSheet(
     isAgentModeEnabled: Boolean,
+    isSearchModeEnabled: Boolean,
     onToggleAgentMode: () -> Unit,
+    onToggleSearchMode: () -> Unit,
     onDismiss: () -> Unit
 ) {
     Column(
@@ -224,10 +266,10 @@ fun ComposerPlusMenuSheet(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         val menuItems = listOf(
-            Triple(Icons.Outlined.AutoAwesome, if (isAgentModeEnabled) "Disable Agent" else "Enable Agent", onToggleAgentMode),
+            Triple(Icons.Outlined.AutoAwesome, if (isAgentModeEnabled) "Disable Agent" else "Agent", onToggleAgentMode),
+            Triple(Icons.Default.Search, if (isSearchModeEnabled) "Disable Search" else "Search", onToggleSearchMode),
             Triple(Icons.Outlined.Description, "Upload File", { onDismiss() }),
             Triple(Icons.Outlined.LibraryBooks, "Use Context", { onDismiss() }),
-            Triple(Icons.Outlined.FolderZip, "Attach Generated File", { onDismiss() }),
         )
         
         Row(

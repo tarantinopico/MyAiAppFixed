@@ -98,6 +98,7 @@ dependencies {
   implementation(libs.androidx.security.crypto)
   implementation(libs.okhttp.sse)
   implementation(libs.markdown)
+  implementation(libs.jsoup)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.logging.interceptor)

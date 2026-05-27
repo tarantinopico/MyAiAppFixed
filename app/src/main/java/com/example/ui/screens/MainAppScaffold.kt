@@ -41,7 +41,8 @@ fun MainAppScaffold(appContainer: AppContainer) {
         appContainer.conversationRepository,
         appContainer.modelRepository,
         appContainer.settingsRepository,
-        appContainer.sessionRestoreManager
+        appContainer.sessionRestoreManager,
+        appContainer.webSearchManager
     )
 
     val chatViewModel: ChatViewModel = viewModel(factory = factory)
