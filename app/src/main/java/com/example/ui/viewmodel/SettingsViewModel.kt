@@ -7,6 +7,7 @@ import com.example.domain.model.ApiKey
 import com.example.repository.SettingsRepository
 import com.example.repository.ConversationRepository
 import com.example.data.database.TokenStatsResult
+import com.example.data.repository.AppSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,10 +16,7 @@ import kotlinx.coroutines.launch
 
 data class SettingsUiState(
     val apiKeys: List<ApiKey> = emptyList(),
-    val markdownEnabled: Boolean = true,
-    val htmlEnabled: Boolean = false,
-    val autoFailoverEnabled: Boolean = true,
-    val compactMode: Boolean = false,
+    val appSettings: AppSettings = AppSettings(),
     val tokenStats: List<TokenStatsResult> = emptyList()
 )
 
@@ -41,12 +39,16 @@ class SettingsViewModel(
                 _uiState.update { it.copy(tokenStats = stats) }
             }
         }
+        viewModelScope.launch {
+            settingsRepository.appPreferences.settings.collect { appSettings ->
+                _uiState.update { it.copy(appSettings = appSettings) }
+            }
+        }
     }
 
-    fun toggleMarkdown() = _uiState.update { it.copy(markdownEnabled = !it.markdownEnabled) }
-    fun toggleHtml() = _uiState.update { it.copy(htmlEnabled = !it.htmlEnabled) }
-    fun toggleFailover() = _uiState.update { it.copy(autoFailoverEnabled = !it.autoFailoverEnabled) }
-    fun toggleCompact() = _uiState.update { it.copy(compactMode = !it.compactMode) }
+    fun updateSettings(updater: (AppSettings) -> AppSettings) {
+        settingsRepository.appPreferences.updateSettings(updater)
+    }
 
     fun saveApiKey(provider: ProviderType, key: String, label: String = "Default Key") {
         if (key.isNotBlank()) {
@@ -62,3 +64,4 @@ class SettingsViewModel(
         }
     }
 }
+

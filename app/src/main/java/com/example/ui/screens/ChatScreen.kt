@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -46,6 +48,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import android.widget.TextView
 
 import androidx.activity.compose.BackHandler
+import com.example.ui.theme.LocalAppSettings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +61,10 @@ fun ChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
+    val appSettings = LocalAppSettings.current
+    
+    var showInChatSearch by remember { mutableStateOf(false) }
+    var inChatSearchQuery by remember { mutableStateOf("") }
     
     val scrollController = com.example.ui.components.rememberSmartAutoScrollState(
         listState = listState,
@@ -72,75 +79,106 @@ fun ChatScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                LiquidGlassSurface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    shape = RoundedCornerShape(24.dp)
-                ) {
-                    Row(
+                Column {
+                    LiquidGlassSurface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .statusBarsPadding()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(24.dp)
                     ) {
-                        IconButton(onClick = onOpenDrawer) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
-                        
-                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                            ProviderModelDropdown(
-                                selectedProvider = uiState.activeProvider,
-                                selectedModelId = uiState.activeModelId,
-                                availableProviders = uiState.availableProviders,
-                                models = uiState.models,
-                                onSelectionChanged = { p, m -> viewModel.selectProviderModel(p, m) }
-                            )
-                        }
-
-                        Row {
-                            var showTitleEditor by remember { mutableStateOf(false) }
-
-                            IconButton(onClick = { showTitleEditor = true }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit Title")
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(onClick = onOpenDrawer) {
+                                Icon(Icons.Default.Menu, contentDescription = "Menu")
                             }
                             
-                            if (showTitleEditor) {
-                                androidx.compose.material3.AlertDialog(
-                                    onDismissRequest = { showTitleEditor = false },
-                                    text = {
-                                        com.example.ui.components.ChatTitleEditor(
-                                            currentTitle = uiState.conversation?.title ?: "Chat",
-                                            suggestedTitle = "Suggested Title (AI)",
-                                            onSaveTitle = {
-                                                viewModel.updateConversationTitle(it)
-                                                showTitleEditor = false
-                                            },
-                                            onAcceptSuggestion = {
-                                                viewModel.updateConversationTitle("Suggested Title (AI)")
-                                                showTitleEditor = false
-                                            },
-                                            onClose = { showTitleEditor = false }
-                                        )
-                                    },
-                                    confirmButton = {}
+                            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                ProviderModelDropdown(
+                                    selectedProvider = uiState.activeProvider,
+                                    selectedModelId = uiState.activeModelId,
+                                    availableProviders = uiState.availableProviders,
+                                    models = uiState.models,
+                                    onSelectionChanged = { p, m -> viewModel.selectProviderModel(p, m) }
                                 )
                             }
-                            
-                            val context = androidx.compose.ui.platform.LocalContext.current
-                            val exportManager = remember { com.example.data.storage.FileExportManager(context) }
-                            
-                            IconButton(onClick = { 
-                                val title = uiState.conversation?.title ?: "Chat"
-                                exportManager.shareConversation(title, uiState.messages)
-                            }) {
-                                Icon(Icons.Default.Share, contentDescription = "Export")
+    
+                            Row {
+                                var showTitleEditor by remember { mutableStateOf(false) }
+    
+                                IconButton(onClick = { showInChatSearch = !showInChatSearch }) {
+                                    Icon(Icons.Default.Search, contentDescription = "Search")
+                                }
+                                
+                                IconButton(onClick = { showTitleEditor = true }) {
+                                    Icon(Icons.Default.Edit, contentDescription = "Edit Title")
+                                }
+                                
+                                if (showTitleEditor) {
+                                    androidx.compose.material3.AlertDialog(
+                                        onDismissRequest = { showTitleEditor = false },
+                                        text = {
+                                            com.example.ui.components.ChatTitleEditor(
+                                                currentTitle = uiState.conversation?.title ?: "Chat",
+                                                suggestedTitle = "Suggested Title (AI)",
+                                                onSaveTitle = {
+                                                    viewModel.updateConversationTitle(it)
+                                                    showTitleEditor = false
+                                                },
+                                                onAcceptSuggestion = {
+                                                    viewModel.updateConversationTitle("Suggested Title (AI)")
+                                                    showTitleEditor = false
+                                                },
+                                                onClose = { showTitleEditor = false }
+                                            )
+                                        },
+                                        confirmButton = {}
+                                    )
+                                }
+                                
+                                val context = androidx.compose.ui.platform.LocalContext.current
+                                val exportManager = remember { com.example.data.storage.FileExportManager(context) }
+                                
+                                IconButton(onClick = { 
+                                    val title = uiState.conversation?.title ?: "Chat"
+                                    exportManager.shareConversation(title, uiState.messages)
+                                }) {
+                                    Icon(Icons.Default.Share, contentDescription = "Export")
+                                }
+                                IconButton(onClick = onNavigateToSettings) {
+                                    Icon(Icons.Default.Settings, contentDescription = "Settings")
+                                }
                             }
-                            IconButton(onClick = onNavigateToSettings) {
-                                Icon(Icons.Default.Settings, contentDescription = "Settings")
-                            }
+                        }
+                    }
+                    
+                    AnimatedVisibility(visible = showInChatSearch) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = inChatSearchQuery,
+                                onValueChange = { inChatSearchQuery = it },
+                                placeholder = { Text("Search messages...") },
+                                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                trailingIcon = {
+                                    IconButton(onClick = { 
+                                        inChatSearchQuery = ""
+                                        showInChatSearch = false 
+                                    }) {
+                                        Icon(Icons.Default.Close, contentDescription = "Close Search")
+                                    }
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp)
+                            )
                         }
                     }
                 }
@@ -152,6 +190,22 @@ fun ChatScreen(
                     .padding(innerPadding)
                     .consumeWindowInsets(innerPadding)
             ) {
+                if (appSettings.diagnosticsMode) {
+                    com.example.ui.components.premium.DynamicGlassCard(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                        elevation = 2.dp
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(8.dp).fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Diagnostics Active", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                            Text("Conv: ${uiState.conversation?.id ?: "null"} | Msgs: ${uiState.messages.size}", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+
                 if (uiState.planSteps.isNotEmpty()) {
                     com.example.ui.components.PlanStatusCard(
                         steps = uiState.planSteps,
@@ -182,6 +236,12 @@ fun ChatScreen(
                         )
                     }
                 } else {
+                    val filteredMessages = if (inChatSearchQuery.isNotBlank()) {
+                        uiState.messages.filter { it.content.contains(inChatSearchQuery, ignoreCase = true) }
+                    } else {
+                        uiState.messages
+                    }
+
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
@@ -193,7 +253,7 @@ fun ChatScreen(
                         ),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        items(uiState.messages, key = { it.id }) { msg ->
+                        items(filteredMessages, key = { it.id }) { msg ->
                             ChatMessageItem(
                                 message = msg,
                                 onPreviewFile = { file -> 

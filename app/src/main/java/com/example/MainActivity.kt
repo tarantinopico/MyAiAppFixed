@@ -15,13 +15,13 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     val appContainer = (application as AIModelAggregatorApplication).container
     setContent {
-      val themeMode by appContainer.themePreferences.themeMode.collectAsStateWithLifecycle()
-      val isDarkTheme = when (themeMode) {
+      val appSettings by appContainer.appPreferences.settings.collectAsStateWithLifecycle()
+      val isDarkTheme = when (appSettings.themeMode) {
           1 -> false // Light
           2 -> true  // Dark
           else -> androidx.compose.foundation.isSystemInDarkTheme() // System
       }
-      AIModelAggregatorTheme(darkTheme = isDarkTheme) {
+      AIModelAggregatorTheme(darkTheme = isDarkTheme, appSettings = appSettings) {
         MainAppScaffold(appContainer)
       }
     }

@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class SettingsRepository(
-    private val keyManager: MultiKeyManager
+    private val keyManager: MultiKeyManager,
+    val appPreferences: com.example.data.repository.AppPreferences
 ) {
     suspend fun saveApiKey(providerType: ProviderType, apiKey: String, label: String = "Default Key") {
         keyManager.saveKey(providerType, label, apiKey, isPreferred = true)

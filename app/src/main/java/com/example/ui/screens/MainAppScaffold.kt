@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.rotate
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -22,6 +21,7 @@ import com.example.di.AppContainer
 import com.example.ui.viewmodel.AppViewModelFactory
 import com.example.ui.viewmodel.ChatViewModel
 import com.example.ui.viewmodel.ConversationListViewModel
+import com.example.ui.components.premium.AmbientGradientBackdrop
 import kotlinx.coroutines.launch
 
 object NavigationRoute {
@@ -29,7 +29,6 @@ object NavigationRoute {
     const val SETTINGS = "settings"
     const val MODELS = "models"
     const val CUSTOM_PROVIDERS = "custom_providers"
-    const val APPEARANCE = "appearance"
     const val PROMPT_LIBRARY = "prompt_library"
     const val SKILLS = "skills"
 }
@@ -55,17 +54,6 @@ fun MainAppScaffold(appContainer: AppContainer) {
 
     val chatViewModel: ChatViewModel = viewModel(factory = factory)
     val listViewModel: ConversationListViewModel = viewModel(factory = factory)
-    
-    // Abstract fluid blobs animation
-    val infiniteTransition = rememberInfiniteTransition()
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(20000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        )
-    )
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -90,49 +78,8 @@ fun MainAppScaffold(appContainer: AppContainer) {
             label = "main_content_blur"
         )
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).blur(radius = mainContentBlur)) {
-            // Blurred Glass Orbs - More vibrant and modern
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset(x = (-150).dp, y = (-100).dp)
-                    .blur(radius = 120.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                com.example.ui.theme.AccentPurple.copy(alpha = 0.45f),
-                                Color.Transparent
-                            )
-                        )
-                    )
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset(x = 150.dp, y = 350.dp)
-                    .blur(radius = 150.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                com.example.ui.theme.AccentBlue.copy(alpha = 0.35f),
-                                Color.Transparent
-                            )
-                        )
-                    )
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset(x = 0.dp, y = 700.dp)
-                    .blur(radius = 130.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                com.example.ui.theme.AccentTeal.copy(alpha = 0.35f),
-                                Color.Transparent
-                            )
-                        )
-                    )
-            )
+            
+            AmbientGradientBackdrop(modifier = Modifier.fillMaxSize())
             
             NavHost(
                 navController = navController,
@@ -166,7 +113,7 @@ fun MainAppScaffold(appContainer: AppContainer) {
                         onBack = { navController.popBackStack() },
                         onNavigateToModels = { navController.navigate(NavigationRoute.MODELS) },
                         onNavigateToCustomProviders = { navController.navigate(NavigationRoute.CUSTOM_PROVIDERS) },
-                        onNavigateToAppearance = { navController.navigate(NavigationRoute.APPEARANCE) },
+                        onNavigateToAppearance = { },
                         viewModel = viewModel(factory = factory)
                     )
                 }
@@ -186,18 +133,6 @@ fun MainAppScaffold(appContainer: AppContainer) {
                         onBack = { navController.popBackStack() }
                     )
                 }
-                composable(NavigationRoute.APPEARANCE) {
-                    val themeMode by appContainer.themePreferences.themeMode.collectAsStateWithLifecycle()
-                    AppearanceCustomizationScreen(
-                        onBack = { navController.popBackStack() },
-                        blurIntensity = 100f,
-                        onBlurIntensityChange = {},
-                        animationSpeed = 1f,
-                        onAnimationSpeedChange = {},
-                        currentThemeMode = themeMode,
-                        onThemeModeChange = { appContainer.themePreferences.setThemeMode(it) }
-                    )
-                }
                 composable(NavigationRoute.SKILLS) {
                     val vm: com.example.ui.viewmodel.SkillsViewModel = viewModel(factory = factory)
                     val skills by vm.skills.collectAsStateWithLifecycle()
@@ -207,7 +142,7 @@ fun MainAppScaffold(appContainer: AppContainer) {
                         onDelete = { id -> vm.deleteSkill(id) },
                         onSelect = { skill ->
                             chatViewModel.setSelectedSkill(skill.id)
-                            chatViewModel.onInputChanged(skill.systemPrompt) // just to show it works temporarily, or we inject into system prompt
+                            chatViewModel.onInputChanged(skill.systemPrompt)
                             navController.popBackStack()
                         },
                         onBack = { navController.popBackStack() }
@@ -217,3 +152,4 @@ fun MainAppScaffold(appContainer: AppContainer) {
         }
     }
 }
+

@@ -113,7 +113,7 @@ class AppContainer(private val applicationContext: Context) {
     // Repositories
     val modelRepository by lazy { ModelRepository(database.modelDao()) }
     val conversationRepository by lazy { ConversationRepository(database.conversationDao(), database.messageDao()) }
-    val settingsRepository by lazy { SettingsRepository(multiKeyManager) }
+    val settingsRepository by lazy { SettingsRepository(multiKeyManager, appPreferences) }
     val customProviderRepository by lazy { com.example.repository.CustomProviderRepository(database.customProviderDao()) }
     val promptPreferences by lazy { com.example.data.repository.PromptPreferences(applicationContext) }
     val chatRepository by lazy {
@@ -140,5 +140,6 @@ class AppContainer(private val applicationContext: Context) {
     private val duckDuckGoProvider by lazy { com.example.data.search.DuckDuckGoSearchProvider() }
     val webSearchManager by lazy { com.example.domain.search.WebSearchManager(duckDuckGoProvider) }
     val sessionRestoreManager by lazy { com.example.repository.SessionRestoreManager(applicationContext) }
+    val appPreferences by lazy { com.example.data.repository.AppPreferences(applicationContext) }
     val themePreferences by lazy { com.example.data.repository.ThemePreferences(applicationContext) }
 }
