@@ -121,7 +121,6 @@ fun ChatScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .consumeWindowInsets(innerPadding)
-                    .imePadding()
             ) {
                 if (uiState.messages.isEmpty()) {
                     Box(modifier = Modifier.weight(1f)) {
