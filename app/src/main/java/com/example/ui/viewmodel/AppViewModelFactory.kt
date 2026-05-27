@@ -17,14 +17,15 @@ class AppViewModelFactory(
     private val sessionRestoreManager: com.example.repository.SessionRestoreManager,
     private val webSearchManager: com.example.domain.search.WebSearchManager,
     private val customProviderRepository: com.example.repository.CustomProviderRepository,
-    private val promptPreferences: com.example.data.repository.PromptPreferences
+    private val promptPreferences: com.example.data.repository.PromptPreferences,
+    private val database: com.example.data.database.AppDatabase
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(ChatViewModel::class.java) -> {
-                ChatViewModel(chatRepository, conversationRepository, modelRepository, sessionRestoreManager, webSearchManager) as T
+                ChatViewModel(chatRepository, conversationRepository, modelRepository, sessionRestoreManager, webSearchManager, database.planStepDao()) as T
             }
             modelClass.isAssignableFrom(ConversationListViewModel::class.java) -> {
                 ConversationListViewModel(conversationRepository) as T
@@ -40,6 +41,9 @@ class AppViewModelFactory(
             }
             modelClass.isAssignableFrom(CustomProvidersViewModel::class.java) -> {
                 CustomProvidersViewModel(customProviderRepository) as T
+            }
+            modelClass.isAssignableFrom(com.example.ui.viewmodel.SkillsViewModel::class.java) -> {
+                com.example.ui.viewmodel.SkillsViewModel(database.skillDao()) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }

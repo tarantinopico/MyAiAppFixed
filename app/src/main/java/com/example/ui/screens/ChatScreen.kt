@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,7 +53,8 @@ fun ChatScreen(
     viewModel: ChatViewModel,
     onOpenDrawer: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToPromptLibrary: () -> Unit = {}
+    onNavigateToPromptLibrary: () -> Unit = {},
+    onNavigateToSkills: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
@@ -99,6 +101,34 @@ fun ChatScreen(
                         }
 
                         Row {
+                            var showTitleEditor by remember { mutableStateOf(false) }
+
+                            IconButton(onClick = { showTitleEditor = true }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Edit Title")
+                            }
+                            
+                            if (showTitleEditor) {
+                                androidx.compose.material3.AlertDialog(
+                                    onDismissRequest = { showTitleEditor = false },
+                                    text = {
+                                        com.example.ui.components.ChatTitleEditor(
+                                            currentTitle = uiState.conversation?.title ?: "Chat",
+                                            suggestedTitle = "Suggested Title (AI)",
+                                            onSaveTitle = {
+                                                viewModel.updateConversationTitle(it)
+                                                showTitleEditor = false
+                                            },
+                                            onAcceptSuggestion = {
+                                                viewModel.updateConversationTitle("Suggested Title (AI)")
+                                                showTitleEditor = false
+                                            },
+                                            onClose = { showTitleEditor = false }
+                                        )
+                                    },
+                                    confirmButton = {}
+                                )
+                            }
+                            
                             val context = androidx.compose.ui.platform.LocalContext.current
                             val exportManager = remember { com.example.data.storage.FileExportManager(context) }
                             
@@ -122,6 +152,25 @@ fun ChatScreen(
                     .padding(innerPadding)
                     .consumeWindowInsets(innerPadding)
             ) {
+                if (uiState.planSteps.isNotEmpty()) {
+                    com.example.ui.components.PlanStatusCard(
+                        steps = uiState.planSteps,
+                        onApprove = { viewModel.executePlan() },
+                        onCancel = { viewModel.cancelPlan() },
+                        onRetryStep = { stepId -> viewModel.retryPlanStep(stepId) },
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                
+                if (uiState.isLoopModeEnabled) {
+                    com.example.ui.components.LoopStatusCard(
+                        roundsCompleted = 0,
+                        isSearching = uiState.isStreaming,
+                        onStop = { viewModel.stopStreaming() },
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+
                 if (uiState.messages.isEmpty()) {
                     Box(modifier = Modifier.weight(1f)) {
                         com.example.ui.components.EmptyChatState(
@@ -162,10 +211,15 @@ fun ChatScreen(
                     onAgentModeChanged = { viewModel.setAgentMode(it) },
                     isSearchModeEnabled = uiState.isSearchModeEnabled,
                     onSearchModeChanged = { viewModel.setSearchMode(it) },
+                    isPlanModeEnabled = uiState.isPlanModeEnabled,
+                    onPlanModeChanged = { viewModel.setPlanMode(it) },
+                    isLoopModeEnabled = uiState.isLoopModeEnabled,
+                    onLoopModeChanged = { viewModel.setLoopMode(it) },
                     onTextChanged = { viewModel.onInputChanged(it) },
                     onSend = { viewModel.sendMessage() },
                     onStop = { viewModel.stopStreaming() },
-                    onNavigateToPromptLibrary = onNavigateToPromptLibrary
+                    onNavigateToPromptLibrary = onNavigateToPromptLibrary,
+                    onNavigateToSkills = onNavigateToSkills
                 )
             }
         }

@@ -22,7 +22,11 @@ data class ChatUiState(
     val models: List<ProviderModel> = emptyList(),
     val isAgentModeEnabled: Boolean = false,
     val isSearchModeEnabled: Boolean = false,
-    val selectedFileToPreview: GeneratedFile? = null
+    val isPlanModeEnabled: Boolean = false,
+    val isLoopModeEnabled: Boolean = false,
+    val selectedSkillId: String? = null,
+    val selectedFileToPreview: GeneratedFile? = null,
+    val planSteps: List<com.example.data.database.PlanStepEntity> = emptyList()
 )
 
 class ChatViewModel(
@@ -30,7 +34,8 @@ class ChatViewModel(
     private val conversationRepository: ConversationRepository,
     private val modelRepository: ModelRepository,
     private val sessionRestoreManager: com.example.repository.SessionRestoreManager,
-    private val webSearchManager: com.example.domain.search.WebSearchManager
+    private val webSearchManager: com.example.domain.search.WebSearchManager,
+    private val planStepDao: com.example.data.database.PlanStepDao
 ) : ViewModel() {
 
     private val draftPersistenceManager = DraftPersistenceManager(conversationRepository, viewModelScope)
@@ -74,12 +79,15 @@ class ChatViewModel(
         }
     }
 
+    private var planStepsJob: Job? = null
+
     fun loadConversation(id: Long) {
         if (activeConversationId == id) return
         activeConversationId = id
         sessionRestoreManager.setLastActiveConversation(id)
         messagesJob?.cancel()
         streamJob?.cancel()
+        planStepsJob?.cancel()
 
         viewModelScope.launch {
             conversationRepository.getConversation(id).filterNotNull().collectLatest { conv ->
@@ -99,6 +107,12 @@ class ChatViewModel(
                 _uiState.update { it.copy(messages = msgs) }
             }
         }
+        
+        planStepsJob = viewModelScope.launch {
+            planStepDao.getPlanSteps(id).collect { steps ->
+                _uiState.update { it.copy(planSteps = steps) }
+            }
+        }
     }
 
     fun startNewConversation() {
@@ -106,12 +120,14 @@ class ChatViewModel(
         sessionRestoreManager.setLastActiveConversation(null)
         messagesJob?.cancel()
         streamJob?.cancel()
+        planStepsJob?.cancel()
         _uiState.update {
             it.copy(
                 conversation = null,
                 messages = emptyList(),
                 currentInput = "",
-                isStreaming = false
+                isStreaming = false,
+                planSteps = emptyList()
             )
         }
     }
@@ -159,6 +175,16 @@ class ChatViewModel(
         }
     }
 
+    fun updateConversationTitle(newTitle: String) {
+        val conv = _uiState.value.conversation
+        if (conv != null) {
+            viewModelScope.launch {
+                conversationRepository.updateConversation(conv.copy(title = newTitle))
+                loadConversation(conv.id)
+            }
+        }
+    }
+
     fun selectProviderModel(provider: ProviderType, modelId: String) {
         _uiState.update { it.copy(activeProvider = provider, activeModelId = modelId) }
         val conv = _uiState.value.conversation
@@ -170,15 +196,128 @@ class ChatViewModel(
     }
 
     fun setAgentMode(enabled: Boolean) {
-        _uiState.update { it.copy(isAgentModeEnabled = enabled, isSearchModeEnabled = if (enabled) false else it.isSearchModeEnabled) }
+        _uiState.update { 
+            it.copy(
+                isAgentModeEnabled = enabled, 
+                isSearchModeEnabled = if (enabled) false else it.isSearchModeEnabled 
+            ) 
+        }
     }
 
     fun setSearchMode(enabled: Boolean) {
-        _uiState.update { it.copy(isSearchModeEnabled = enabled, isAgentModeEnabled = if (enabled) false else it.isAgentModeEnabled) }
+        _uiState.update { 
+            it.copy(
+                isSearchModeEnabled = enabled, 
+                isAgentModeEnabled = if (enabled) false else it.isAgentModeEnabled 
+            ) 
+        }
+    }
+
+    fun setPlanMode(enabled: Boolean) {
+        _uiState.update { it.copy(isPlanModeEnabled = enabled) }
+    }
+    
+    fun setLoopMode(enabled: Boolean) {
+        _uiState.update { it.copy(isLoopModeEnabled = enabled) }
+    }
+    
+    fun setSelectedSkill(skillId: String?) {
+        _uiState.update { it.copy(selectedSkillId = skillId) }
     }
     
     fun setPreviewFile(file: GeneratedFile?) {
         _uiState.update { it.copy(selectedFileToPreview = file) }
+    }
+
+    fun executePlan() {
+        val convId = activeConversationId ?: return
+        val steps = _uiState.value.planSteps.filter { it.status == "PENDING" || it.status == "FAILED" }.sortedBy { it.stepIndex }
+        if (steps.isEmpty()) return
+        
+        val provider = _uiState.value.activeProvider
+        val model = _uiState.value.activeModelId
+        
+        streamJob?.cancel()
+        streamJob = viewModelScope.launch {
+            _uiState.update { it.copy(isStreaming = true) }
+            
+            for (step in steps) {
+                // Update specific step to IN_PROGRESS
+                planStepDao.updatePlanStep(step.copy(status = "IN_PROGRESS"))
+                
+                val assistantMsg = ChatMessage(conversationId = convId, role = MessageRole.ASSISTANT, content = "Executing Step: ${step.title}...", isStreaming = true)
+                val assistantMsgId = conversationRepository.insertMessage(assistantMsg)
+                
+                try {
+                    val messages = conversationRepository.getMessagesSync(convId)
+                    val historyWithContext = mutableListOf<ChatMessage>()
+                    
+                    val skillId = _uiState.value.selectedSkillId
+                    if (skillId != null) {
+                        // Normally we would look up the skill using SkillDao, for now just append simple text
+                        historyWithContext.add(ChatMessage(conversationId = 0, role = MessageRole.SYSTEM, content = "You are using an AI skill ID: $skillId"))
+                    }
+                    
+                    historyWithContext.addAll(messages)
+                    historyWithContext.add(ChatMessage(conversationId = 0, role = MessageRole.USER, content = "Execute the following step of our plan: ${step.title}. Assume preceding steps are done. Present your response clearly."))
+                    
+                    var fullResponse = ""
+                    chatRepository.sendMessageStream(convId, provider, model, historyWithContext, false).collect { event ->
+                        when(event) {
+                            is com.example.network.ChatStreamEvent.Delta -> {
+                                fullResponse += event.text
+                                val assistant = conversationRepository.getMessagesSync(convId).find { it.id == assistantMsgId }
+                                if (assistant != null) {
+                                    conversationRepository.updateMessage(assistant.copy(content = fullResponse))
+                                }
+                            }
+                            else -> {}
+                        }
+                    }
+                    
+                    // Finished
+                    val assistant = conversationRepository.getMessagesSync(convId).find { it.id == assistantMsgId }
+                    if (assistant != null) {
+                        conversationRepository.updateMessage(assistant.copy(isStreaming = false))
+                    }
+                    
+                    planStepDao.updatePlanStep(step.copy(status = "COMPLETED"))
+                    
+                } catch (e: Exception) {
+                    val assistant = conversationRepository.getMessagesSync(convId).find { it.id == assistantMsgId }
+                    if (assistant != null) {
+                        conversationRepository.updateMessage(assistant.copy(content = "Error executing step '${step.title}': ${e.message}", isStreaming = false, errorMessage = e.message))
+                    }
+                    planStepDao.updatePlanStep(step.copy(status = "FAILED"))
+                    break // halt execution of plan
+                }
+            }
+            _uiState.update { it.copy(isStreaming = false) }
+            loadConversation(convId)
+        }
+    }
+
+    fun cancelPlan() {
+        val convId = activeConversationId ?: return
+        viewModelScope.launch {
+            val steps = _uiState.value.planSteps.filter { it.status == "PENDING" || it.status == "IN_PROGRESS" }
+            for (step in steps) {
+                planStepDao.updatePlanStep(step.copy(status = "FAILED"))
+            }
+            streamJob?.cancel()
+            _uiState.update { it.copy(isStreaming = false) }
+            loadConversation(convId)
+        }
+    }
+
+    fun retryPlanStep(stepId: Long) {
+        viewModelScope.launch {
+            val step = _uiState.value.planSteps.find { it.id == stepId }
+            if (step != null) {
+                planStepDao.updatePlanStep(step.copy(status = "PENDING"))
+                executePlan()
+            }
+        }
     }
 
     fun onInputChanged(text: String) {
@@ -223,6 +362,73 @@ class ChatViewModel(
             // Insert blank Assistant message for streaming
             val assistantMsg = ChatMessage(conversationId = convId, role = MessageRole.ASSISTANT, content = "", isStreaming = true)
             val assistantMsgId = conversationRepository.insertMessage(assistantMsg)
+
+            if (_uiState.value.isPlanModeEnabled) {
+                _uiState.update { it.copy(isPlanModeEnabled = false, isStreaming = true) }
+                val planPrompt = "You are an AI autonomous agent planner. Analyze the following request and return ONLY a bulleted list of high-level plan steps required to complete it. Do not include introductory text, just the steps starting with '-', e.g. '- Set up project structure'. Request: $input"
+                streamJob = viewModelScope.launch {
+                    val messages = listOf(ChatMessage(conversationId = 0, role = MessageRole.USER, content = planPrompt))
+                    var fullResponse = ""
+                    try {
+                        chatRepository.sendMessageStream(convId, provider, model, messages, false).collect { event ->
+                            when (event) {
+                                is com.example.network.ChatStreamEvent.Delta -> {
+                                    fullResponse += event.text
+                                    val assistant = conversationRepository.getMessagesSync(convId).find { it.id == assistantMsgId }
+                                    if (assistant != null) {
+                                        conversationRepository.updateMessage(assistant.copy(content = fullResponse))
+                                    }
+                                }
+                                else -> {}
+                            }
+                        }
+                        
+                        // Parse list into plan steps
+                        val steps = fullResponse.lines().filter { it.trim().startsWith("-") || it.trim().matches(Regex("^\\d+\\..*")) }
+                            .map { it.trim().removePrefix("-").replace(Regex("^\\d+\\.\\s*"), "").trim() }
+                        
+                        if (steps.isNotEmpty()) {
+                            steps.forEachIndexed { index, title ->
+                                planStepDao.insertPlanStep(
+                                    com.example.data.database.PlanStepEntity(
+                                        id = 0, // AutoGenerate
+                                        conversationId = convId,
+                                        title = title,
+                                        description = "Pending execution step.",
+                                        status = "PENDING",
+                                        stepIndex = index,
+                                        resultText = null,
+                                        createdAt = System.currentTimeMillis()
+                                    )
+                                )
+                            }
+                            // replace the planner explanation with a short message
+                            val assistant = conversationRepository.getMessagesSync(convId).find { it.id == assistantMsgId }
+                            if (assistant != null) {
+                                conversationRepository.updateMessage(assistant.copy(
+                                    content = "I have generated an execution plan for your request. Please review the pending steps above.", 
+                                    isStreaming = false
+                                ))
+                            }
+                        } else {
+                            val assistant = conversationRepository.getMessagesSync(convId).find { it.id == assistantMsgId }
+                            if (assistant != null) {
+                                conversationRepository.updateMessage(assistant.copy(isStreaming = false))
+                            }
+                        }
+                        
+                    } catch (e: Exception) {
+                        val assistant = conversationRepository.getMessagesSync(convId).find { it.id == assistantMsgId }
+                        if (assistant != null) {
+                            conversationRepository.updateMessage(assistant.copy(content = "Error generating plan: ${e.message}", isStreaming = false, errorMessage = e.message))
+                        }
+                    } finally {
+                        _uiState.update { it.copy(isStreaming = false) }
+                        loadConversation(convId)
+                    }
+                }
+                return@launch
+            }
 
             if (_uiState.value.isSearchModeEnabled) {
                 _uiState.update { it.copy(isSearchModeEnabled = false, isStreaming = true) }

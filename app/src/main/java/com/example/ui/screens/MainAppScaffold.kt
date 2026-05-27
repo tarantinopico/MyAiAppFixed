@@ -31,6 +31,7 @@ object NavigationRoute {
     const val CUSTOM_PROVIDERS = "custom_providers"
     const val APPEARANCE = "appearance"
     const val PROMPT_LIBRARY = "prompt_library"
+    const val SKILLS = "skills"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +49,8 @@ fun MainAppScaffold(appContainer: AppContainer) {
         appContainer.sessionRestoreManager,
         appContainer.webSearchManager,
         appContainer.customProviderRepository,
-        appContainer.promptPreferences
+        appContainer.promptPreferences,
+        appContainer.database
     )
 
     val chatViewModel: ChatViewModel = viewModel(factory = factory)
@@ -141,7 +143,8 @@ fun MainAppScaffold(appContainer: AppContainer) {
                         viewModel = chatViewModel,
                         onOpenDrawer = { scope.launch { drawerState.open() } },
                         onNavigateToSettings = { navController.navigate(NavigationRoute.SETTINGS) },
-                        onNavigateToPromptLibrary = { navController.navigate(NavigationRoute.PROMPT_LIBRARY) }
+                        onNavigateToPromptLibrary = { navController.navigate(NavigationRoute.PROMPT_LIBRARY) },
+                        onNavigateToSkills = { navController.navigate(NavigationRoute.SKILLS) }
                     )
                 }
                 composable(NavigationRoute.PROMPT_LIBRARY) {
@@ -193,6 +196,21 @@ fun MainAppScaffold(appContainer: AppContainer) {
                         onAnimationSpeedChange = {},
                         currentThemeMode = themeMode,
                         onThemeModeChange = { appContainer.themePreferences.setThemeMode(it) }
+                    )
+                }
+                composable(NavigationRoute.SKILLS) {
+                    val vm: com.example.ui.viewmodel.SkillsViewModel = viewModel(factory = factory)
+                    val skills by vm.skills.collectAsStateWithLifecycle()
+                    SkillsScreen(
+                        skills = skills,
+                        onSave = { s -> vm.saveSkill(s) },
+                        onDelete = { id -> vm.deleteSkill(id) },
+                        onSelect = { skill ->
+                            chatViewModel.setSelectedSkill(skill.id)
+                            chatViewModel.onInputChanged(skill.systemPrompt) // just to show it works temporarily, or we inject into system prompt
+                            navController.popBackStack()
+                        },
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }

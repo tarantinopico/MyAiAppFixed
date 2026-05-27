@@ -31,6 +31,8 @@ import com.example.ui.components.premium.LiquidGlassSurface
 import com.example.ui.components.premium.bounceClick
 import kotlinx.coroutines.launch
 
+import androidx.compose.material.icons.filled.Build
+
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedChatComposer(
@@ -40,10 +42,15 @@ fun AdvancedChatComposer(
     onAgentModeChanged: (Boolean) -> Unit,
     isSearchModeEnabled: Boolean = false,
     onSearchModeChanged: (Boolean) -> Unit = {},
+    isPlanModeEnabled: Boolean = false,
+    onPlanModeChanged: (Boolean) -> Unit = {},
+    isLoopModeEnabled: Boolean = false,
+    onLoopModeChanged: (Boolean) -> Unit = {},
     onTextChanged: (String) -> Unit,
     onSend: () -> Unit,
     onStop: () -> Unit,
-    onNavigateToPromptLibrary: () -> Unit = {}
+    onNavigateToPromptLibrary: () -> Unit = {},
+    onNavigateToSkills: () -> Unit = {}
 ) {
     var showPlusMenu by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -59,6 +66,8 @@ fun AdvancedChatComposer(
             ComposerPlusMenuSheet(
                 isAgentModeEnabled = isAgentModeEnabled,
                 isSearchModeEnabled = isSearchModeEnabled,
+                isPlanModeEnabled = isPlanModeEnabled,
+                isLoopModeEnabled = isLoopModeEnabled,
                 onToggleAgentMode = { 
                     onAgentModeChanged(!isAgentModeEnabled)
                     onSearchModeChanged(false)
@@ -69,10 +78,24 @@ fun AdvancedChatComposer(
                     onAgentModeChanged(false)
                     scope.launch { sheetState.hide() }.invokeOnCompletion { showPlusMenu = false }
                 },
+                onTogglePlanMode = {
+                    onPlanModeChanged(!isPlanModeEnabled)
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { showPlusMenu = false }
+                },
+                onToggleLoopMode = {
+                    onLoopModeChanged(!isLoopModeEnabled)
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { showPlusMenu = false }
+                },
                 onNavigateToPromptLibrary = {
                     scope.launch { sheetState.hide() }.invokeOnCompletion { 
                         showPlusMenu = false
                         onNavigateToPromptLibrary()
+                    }
+                },
+                onNavigateToSkills = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { 
+                        showPlusMenu = false
+                        onNavigateToSkills()
                     }
                 },
                 onDismiss = {
@@ -149,6 +172,64 @@ fun AdvancedChatComposer(
                             Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(16.dp))
                             Text("Internet Search", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.tertiary)
                             Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(14.dp))
+                        }
+                    }
+                }
+            }
+
+            AnimatedVisibility(
+                visible = isPlanModeEnabled,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                        shape = CircleShape,
+                        modifier = Modifier.clip(CircleShape).bounceClick { onPlanModeChanged(false) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Default.List, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(16.dp))
+                            Text("Plan Mode", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+                            Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(14.dp))
+                        }
+                    }
+                }
+            }
+
+            AnimatedVisibility(
+                visible = isLoopModeEnabled,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                        shape = CircleShape,
+                        modifier = Modifier.clip(CircleShape).bounceClick { onLoopModeChanged(false) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                            Text("Loop Mode", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.error)
+                            Icon(Icons.Default.Close, contentDescription = "Remove", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(14.dp))
                         }
                     }
                 }
@@ -266,9 +347,14 @@ fun AdvancedChatComposer(
 fun ComposerPlusMenuSheet(
     isAgentModeEnabled: Boolean,
     isSearchModeEnabled: Boolean,
+    isPlanModeEnabled: Boolean,
+    isLoopModeEnabled: Boolean,
     onToggleAgentMode: () -> Unit,
     onToggleSearchMode: () -> Unit,
+    onTogglePlanMode: () -> Unit,
+    onToggleLoopMode: () -> Unit,
     onNavigateToPromptLibrary: () -> Unit,
+    onNavigateToSkills: () -> Unit,
     onDismiss: () -> Unit
 ) {
     Column(
@@ -277,9 +363,14 @@ fun ComposerPlusMenuSheet(
             .padding(vertical = 16.dp, horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        val menuItems = listOf(
+        val menuItemsTop = listOf(
             Triple(Icons.Outlined.AutoAwesome, if (isAgentModeEnabled) "Disable Agent" else "Agent", onToggleAgentMode),
             Triple(Icons.Default.Search, if (isSearchModeEnabled) "Disable Search" else "Search", onToggleSearchMode),
+            Triple(Icons.Default.List, if (isPlanModeEnabled) "Disable Plan" else "Plan Mode", onTogglePlanMode)
+        )
+        val menuItemsBottom = listOf(
+            Triple(Icons.Outlined.AutoAwesome, if (isLoopModeEnabled) "Disable Loop" else "Loop Mode", onToggleLoopMode),
+            Triple(Icons.Default.Build, "AI Skills", onNavigateToSkills),
             Triple(Icons.Default.List, "Prompt Library", onNavigateToPromptLibrary)
         )
         
@@ -287,7 +378,41 @@ fun ComposerPlusMenuSheet(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            menuItems.forEach { (icon, label, onClick) ->
+            menuItemsTop.forEach { (icon, label, onClick) ->
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .clickable(onClick = onClick)
+                        .padding(8.dp)
+                        .weight(1f)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(icon, contentDescription = null, modifier = Modifier.size(28.dp))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            menuItemsBottom.forEach { (icon, label, onClick) ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier

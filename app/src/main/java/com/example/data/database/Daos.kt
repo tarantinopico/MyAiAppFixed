@@ -122,3 +122,33 @@ interface PresetDao {
     @Delete
     suspend fun deletePreset(preset: PresetEntity)
 }
+
+@Dao
+interface SkillDao {
+    @Query("SELECT * FROM skills ORDER BY sortOrder ASC")
+    fun getAllSkills(): Flow<List<SkillEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSkill(skill: SkillEntity)
+    
+    @Update
+    suspend fun updateSkill(skill: SkillEntity)
+
+    @Delete
+    suspend fun deleteSkill(skill: SkillEntity)
+}
+
+@Dao
+interface PlanStepDao {
+    @Query("SELECT * FROM plan_steps WHERE conversationId = :conversationId ORDER BY stepIndex ASC")
+    fun getPlanSteps(conversationId: Long): Flow<List<PlanStepEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPlanStep(step: PlanStepEntity)
+    
+    @Update
+    suspend fun updatePlanStep(step: PlanStepEntity)
+
+    @Query("DELETE FROM plan_steps WHERE conversationId = :conversationId")
+    suspend fun deletePlanStepsForConversation(conversationId: Long)
+}

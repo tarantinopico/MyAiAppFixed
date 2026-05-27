@@ -82,6 +82,31 @@ data class PresetEntity(
     val iconColorHex: String? = null
 )
 
+@Entity(tableName = "skills")
+data class SkillEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val description: String,
+    val systemPrompt: String,
+    val preferredProvider: ProviderType?,
+    val isCustom: Boolean,
+    val sortOrder: Int,
+    val allowedTools: String, // Comma separated
+    val createdAt: Long
+)
+
+@Entity(tableName = "plan_steps")
+data class PlanStepEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val conversationId: Long,
+    val stepIndex: Int,
+    val title: String,
+    val description: String,
+    val status: String, // PENDING, IN_PROGRESS, COMPLETED, FAILED, SKIPPED
+    val resultText: String?,
+    val createdAt: Long
+)
+
 data class TokenStatsResult(
     val modelIdUsed: String,
     val totalTokens: Long

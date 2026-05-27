@@ -13,9 +13,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         MessageEntity::class,
         ApiKeyEntity::class,
         CustomProviderEntity::class,
-        PresetEntity::class
+        PresetEntity::class,
+        SkillEntity::class,
+        PlanStepEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -26,6 +28,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun apiKeyDao(): ApiKeyDao
     abstract fun customProviderDao(): CustomProviderDao
     abstract fun presetDao(): PresetDao
+    abstract fun skillDao(): SkillDao
+    abstract fun planStepDao(): PlanStepDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -68,6 +72,16 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 database.execSQL(
                     "CREATE TABLE IF NOT EXISTS `presets` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `providerType` TEXT NOT NULL, `modelId` TEXT NOT NULL, `systemPrompt` TEXT NOT NULL, `temperature` REAL NOT NULL, `sortOrder` INTEGER NOT NULL, `iconColorHex` TEXT, PRIMARY KEY(`id`))"
+                )
+            }
+        }
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `skills` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `systemPrompt` TEXT NOT NULL, `preferredProvider` TEXT, `isCustom` INTEGER NOT NULL, `sortOrder` INTEGER NOT NULL, `allowedTools` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+                )
+                database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `plan_steps` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `conversationId` INTEGER NOT NULL, `stepIndex` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `status` TEXT NOT NULL, `resultText` TEXT, `createdAt` INTEGER NOT NULL)"
                 )
             }
         }
