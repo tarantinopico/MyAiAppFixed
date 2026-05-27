@@ -77,8 +77,6 @@ fun AdvancedChatComposer(
     LiquidGlassSurface(
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
-            .imePadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
         shape = RoundedCornerShape(28.dp),
         elevation = 8.dp
