@@ -61,8 +61,8 @@ fun MainAppScaffold(appContainer: AppContainer) {
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
-                drawerTonalElevation = 4.dp
+                drawerContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                drawerTonalElevation = 0.dp
             ) {
                 ConversationDrawerContent(
                     navController = navController,

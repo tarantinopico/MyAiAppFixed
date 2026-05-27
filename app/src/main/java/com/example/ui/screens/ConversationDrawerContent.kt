@@ -24,6 +24,7 @@ import androidx.navigation.NavController
 import com.example.domain.model.ChatConversation
 import com.example.ui.viewmodel.ChatViewModel
 import com.example.ui.viewmodel.ConversationListViewModel
+import com.example.ui.components.GlassCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,15 +74,15 @@ fun ConversationDrawerContent(
             value = uiState.searchQuery,
             onValueChange = { listViewModel.onSearchQueryChanged(it) },
             placeholder = { Text("Search", style = MaterialTheme.typography.bodyMedium) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(20.dp)) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
             shape = CircleShape,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .height(50.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
                 focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                 unfocusedBorderColor = Color.Transparent
             )
@@ -111,17 +112,17 @@ fun ConversationItem(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Surface(
-        onClick = onClick,
+    GlassCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        elevation = 0.dp
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -129,6 +130,7 @@ fun ConversationItem(
                 Text(
                     text = conversation.title.ifEmpty { "New Conversation" },
                     style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

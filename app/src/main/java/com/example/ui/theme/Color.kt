@@ -2,36 +2,35 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// iOS Style Pure Black / White Backgrounds
-val BgDark = Color(0xFF000000)
-val BgDarkSurface = Color(0xFF1C1C1E) 
-val BgDarkSurfaceVariant = Color(0xFF2C2C2E)
-val BgLight = Color(0xFFF2F2F7)
+// Modern Dark/Light Backgrounds
+val BgDark = Color(0xFF0F172A)
+val BgDarkSurface = Color(0xFF1E293B) 
+val BgDarkSurfaceVariant = Color(0xFF334155)
+val BgLight = Color(0xFFF8FAFC)
 val BgLightSurface = Color(0xFFFFFFFF)
-val BgLightSurfaceVariant = Color(0xFFE5E5EA)
+val BgLightSurfaceVariant = Color(0xFFF1F5F9)
 
-// iOS Accents
-val AccentBlue = Color(0xFF007AFF)
-val AccentBlueDark = Color(0xFF0A84FF)
-val AccentPurple = Color(0xFFAF52DE)
-val AccentPurpleDark = Color(0xFFBF5AF2)
-val AccentTeal = Color(0xFF5AC8FA)
-val AccentTealDark = Color(0xFF64D2FF)
+// Accents
+val AccentBlue = Color(0xFF3B82F6)
+val AccentBlueDark = Color(0xFF60A5FA)
+val AccentPurple = Color(0xFF8B5CF6)
+val AccentPurpleDark = Color(0xFFA78BFA)
+val AccentTeal = Color(0xFF14B8A6)
+val AccentTealDark = Color(0xFF2DD4BF)
 
 // gradients definition colors
-val GradientStart = Color(0xFF2E62FF)
-val GradientEnd = Color(0xFF0A84FF)
-val GradientStartDark = Color(0xFF64D2FF)
-val GradientEndDark = Color(0xFF0A84FF)
+val GradientStart = Color(0xFF3B82F6)
+val GradientEnd = Color(0xFF8B5CF6)
+val GradientStartDark = Color(0xFF60A5FA)
+val GradientEndDark = Color(0xFFA78BFA)
 
 // Typography
-val TextPrimaryDark = Color(0xFFFFFFFF)
-val TextSecondaryDark = Color(0x99EBEBF5) 
-val TextTertiaryDark = Color(0x4DEBEBF5)  
-val TextPrimaryLight = Color(0xFF000000)
-val TextSecondaryLight = Color(0x993C3C43)
-val TextTertiaryLight = Color(0x4D3C3C43)
+val TextPrimaryDark = Color(0xFFF8FAFC)
+val TextSecondaryDark = Color(0xFFCBD5E1) 
+val TextTertiaryDark = Color(0xFF94A3B8)  
+val TextPrimaryLight = Color(0xFF0F172A)
+val TextSecondaryLight = Color(0xFF475569)
+val TextTertiaryLight = Color(0xFF94A3B8)
 
-val OutlineColorDark = Color(0x33EBEBF5) 
-val OutlineColorLight = Color(0x333C3C43) 
-
+val OutlineColorDark = Color(0xFF334155) 
+val OutlineColorLight = Color(0xFFE2E8F0) 
