@@ -27,11 +27,13 @@ import com.example.ui.viewmodel.ChatViewModel
 import com.example.ui.viewmodel.ConversationListViewModel
 import com.example.ui.components.GlassCard
 
+import com.example.ui.components.premium.DynamicGlassCard
+import com.example.ui.components.premium.bounceClick
+
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.filled.MoreVert
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationDrawerContent(
     navController: NavController,
@@ -157,11 +159,11 @@ fun ConversationItem(
 ) {
     var showMenu by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
 
-    GlassCard(
+    DynamicGlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clickable { onClick() },
+            .bounceClick { onClick() },
         shape = RoundedCornerShape(16.dp),
         elevation = 0.dp
     ) {
@@ -189,7 +191,7 @@ fun ConversationItem(
                 )
             }
             Box {
-                IconButton(onClick = { showMenu = true }, modifier = Modifier.size(36.dp)) {
+                IconButton(onClick = { showMenu = true }, modifier = Modifier.size(36.dp).bounceClick { showMenu = true }) {
                     Icon(
                         Icons.Default.MoreVert, 
                         contentDescription = "Options", 

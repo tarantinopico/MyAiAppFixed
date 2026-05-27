@@ -17,8 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.ProviderType
 import com.example.domain.model.ProviderModel
-import com.example.ui.components.GlassCard
-import com.example.ui.components.GlassSurface
+import com.example.ui.components.premium.DynamicGlassCard
+import com.example.ui.components.premium.LiquidGlassSurface
+import com.example.ui.components.premium.bounceClick
 import com.example.ui.viewmodel.ModelManagementViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +35,7 @@ fun ModelManagementScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            GlassSurface(
+            LiquidGlassSurface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -45,7 +46,7 @@ fun ModelManagementScreen(
                     modifier = Modifier.padding(8.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack, modifier = Modifier.bounceClick { onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
@@ -84,7 +85,7 @@ fun ModelManagementScreen(
                             Tab(
                                 selected = isSelected,
                                 onClick = { viewModel.selectProvider(provider) },
-                                modifier = Modifier.padding(4.dp)
+                                modifier = Modifier.padding(4.dp).bounceClick { viewModel.selectProvider(provider) }
                             ) {
                                 Surface(
                                     shape = MaterialTheme.shapes.large,
@@ -105,7 +106,7 @@ fun ModelManagementScreen(
 
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
-                    GlassCard(
+                    DynamicGlassCard(
                         modifier = Modifier.fillMaxWidth(),
                         shape = MaterialTheme.shapes.large,
                         elevation = 2.dp
@@ -141,7 +142,13 @@ fun ModelManagementScreen(
                                         newModelId = ""
                                     }
                                 },
-                                modifier = Modifier.align(Alignment.End),
+                                modifier = Modifier.align(Alignment.End).bounceClick {
+                                    if (newDisplayName.isNotBlank() && newModelId.isNotBlank()) {
+                                        viewModel.addModel(newDisplayName, newModelId, false)
+                                        newDisplayName = ""
+                                        newModelId = ""
+                                    }
+                                },
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text("Add")
@@ -172,7 +179,7 @@ fun ModelItem(
     onDelete: () -> Unit,
     onSetDefault: () -> Unit
 ) {
-    GlassCard(
+    DynamicGlassCard(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         elevation = 1.dp
@@ -201,14 +208,14 @@ fun ModelItem(
                     }
                 }
             }
-            IconButton(onClick = onSetDefault) {
+            IconButton(onClick = onSetDefault, modifier = Modifier.bounceClick { onSetDefault() }) {
                 Icon(
                     imageVector = if (model.isDefault) Icons.Filled.Star else Icons.Outlined.StarBorder,
                     contentDescription = "Default",
                     tint = if (model.isDefault) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            IconButton(onClick = onDelete) {
+            IconButton(onClick = onDelete, modifier = Modifier.bounceClick { onDelete() }) {
                 Icon(
                     Icons.Default.Delete, 
                     contentDescription = "Delete",

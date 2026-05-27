@@ -10,8 +10,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.ui.components.GlassCard
-import com.example.ui.components.GlassSurface
+import com.example.ui.components.premium.DynamicGlassCard
+import com.example.ui.components.premium.LiquidGlassSurface
+import com.example.ui.components.premium.bounceClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,7 +26,7 @@ fun AppearanceCustomizationScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            GlassSurface(
+            LiquidGlassSurface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -36,7 +37,7 @@ fun AppearanceCustomizationScreen(
                     modifier = Modifier.padding(8.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack, modifier = Modifier.bounceClick { onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
@@ -60,7 +61,7 @@ fun AppearanceCustomizationScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                GlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
+                DynamicGlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("Glassmorphism Blur Intensity", style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(16.dp))
@@ -78,9 +79,9 @@ fun AppearanceCustomizationScreen(
             }
 
             item {
-                GlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
+                DynamicGlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Animation Intensity", style = MaterialTheme.typography.titleMedium)
+                        Text("Animation Speed", style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(16.dp))
                         Slider(
                             value = animationSpeed,

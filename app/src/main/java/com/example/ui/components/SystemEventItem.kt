@@ -26,6 +26,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.clickable
 import androidx.compose.animation.animateContentSize
+import com.example.ui.components.premium.DynamicGlassCard
+import com.example.ui.components.premium.bounceClick
 
 @Composable
 fun SystemEventItem(event: SystemEvent, onPreviewFile: (GeneratedFile) -> Unit) {
@@ -35,13 +37,13 @@ fun SystemEventItem(event: SystemEvent, onPreviewFile: (GeneratedFile) -> Unit) 
     
     val canExpand = event.type == EventType.SEARCH_RESULT || event.type == EventType.SEARCH_START
 
-    Surface(
+    DynamicGlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .then(if (canExpand) Modifier.clickable { isExpanded = !isExpanded } else Modifier),
+            .then(if (canExpand) Modifier.bounceClick { isExpanded = !isExpanded } else Modifier),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        elevation = 0.dp
     ) {
         Column(modifier = Modifier.animateContentSize()) {
             Row(
@@ -120,13 +122,12 @@ fun GeneratedFileCard(
     onDownload: () -> Unit,
     onOpen: () -> Unit
 ) {
-    Surface(
+    DynamicGlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+        elevation = 1.dp
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -151,13 +152,13 @@ fun GeneratedFileCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            IconButton(onClick = onPreview) {
+            IconButton(onClick = onPreview, modifier = Modifier.bounceClick { onPreview() }) {
                 Icon(Icons.Default.Visibility, contentDescription = "Preview", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            IconButton(onClick = onDownload) {
+            IconButton(onClick = onDownload, modifier = Modifier.bounceClick { onDownload() }) {
                 Icon(Icons.Default.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            IconButton(onClick = onOpen) {
+            IconButton(onClick = onOpen, modifier = Modifier.bounceClick { onOpen() }) {
                 Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = "Open Externally", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }

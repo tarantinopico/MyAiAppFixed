@@ -2,21 +2,21 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Modern Dark/Light Backgrounds
-val BgDark = Color(0xFF0F172A)
-val BgDarkSurface = Color(0xFF1E293B) 
-val BgDarkSurfaceVariant = Color(0xFF334155)
-val BgLight = Color(0xFFF8FAFC)
+// Modern Dark/Light Backgrounds - Premium Graphite and Deep Slate
+val BgDark = Color(0xFF0C0E14)
+val BgDarkSurface = Color(0xFF161922) 
+val BgDarkSurfaceVariant = Color(0xFF222634)
+val BgLight = Color(0xFFFBFBFD)
 val BgLightSurface = Color(0xFFFFFFFF)
-val BgLightSurfaceVariant = Color(0xFFF1F5F9)
+val BgLightSurfaceVariant = Color(0xFFF2F2F5)
 
-// Accents
-val AccentBlue = Color(0xFF3B82F6)
-val AccentBlueDark = Color(0xFF60A5FA)
+// Accents - Indigo and Cyan touches
+val AccentBlue = Color(0xFF4F46E5)
+val AccentBlueDark = Color(0xFF6366F1)
 val AccentPurple = Color(0xFF8B5CF6)
 val AccentPurpleDark = Color(0xFFA78BFA)
-val AccentTeal = Color(0xFF14B8A6)
-val AccentTealDark = Color(0xFF2DD4BF)
+val AccentTeal = Color(0xFF06B6D4)
+val AccentTealDark = Color(0xFF22D3EE)
 
 // gradients definition colors
 val GradientStart = Color(0xFF3B82F6)

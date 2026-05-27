@@ -26,7 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.ui.components.GlassSurface
+import com.example.ui.components.premium.LiquidGlassSurface
+import com.example.ui.components.premium.bounceClick
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
@@ -73,18 +74,19 @@ fun AdvancedChatComposer(
         }
     }
 
-    GlassSurface(
+    LiquidGlassSurface(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .imePadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(28.dp)
+        shape = RoundedCornerShape(28.dp),
+        elevation = 8.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 4.dp)
+                .padding(horizontal = 4.dp, vertical = 4.dp).animateContentSize(animationSpec = com.example.ui.components.premium.PremiumMotion.DefaultIntSizeSpring)
         ) {
             // Agent Action Chip
             AnimatedVisibility(
@@ -101,7 +103,7 @@ fun AdvancedChatComposer(
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                         shape = CircleShape,
-                        modifier = Modifier.clip(CircleShape).clickable { onAgentModeChanged(false) }
+                        modifier = Modifier.clip(CircleShape).bounceClick { onAgentModeChanged(false) }
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -131,7 +133,7 @@ fun AdvancedChatComposer(
                     Surface(
                         color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
                         shape = CircleShape,
-                        modifier = Modifier.clip(CircleShape).clickable { onSearchModeChanged(false) }
+                        modifier = Modifier.clip(CircleShape).bounceClick { onSearchModeChanged(false) }
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -153,7 +155,7 @@ fun AdvancedChatComposer(
             ) {
                 IconButton(
                     onClick = { showPlusMenu = true },
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(48.dp).bounceClick { showPlusMenu = true }
                 ) {
                     Icon(
                         Icons.Default.Add,
@@ -193,7 +195,7 @@ fun AdvancedChatComposer(
                 AnimatedContent(
                     targetState = isStreaming to text.isNotBlank(),
                     transitionSpec = {
-                        (fadeIn() + scaleIn()).togetherWith(fadeOut() + scaleOut())
+                        (fadeIn() + scaleIn(animationSpec = com.example.ui.components.premium.PremiumMotion.FastSpring)).togetherWith(fadeOut() + scaleOut())
                     },
                     label = "ComposerAction"
                 ) { (streaming, hasText) ->
@@ -205,6 +207,7 @@ fun AdvancedChatComposer(
                                     modifier = Modifier
                                         .size(44.dp)
                                         .background(MaterialTheme.colorScheme.surface, CircleShape)
+                                        .bounceClick { onStop() }
                                 ) {
                                     Icon(
                                         Icons.Default.Stop,
@@ -219,6 +222,7 @@ fun AdvancedChatComposer(
                                     modifier = Modifier
                                         .size(44.dp)
                                         .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                        .bounceClick { onSend() }
                                 ) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.Send,
@@ -234,6 +238,7 @@ fun AdvancedChatComposer(
                                     modifier = Modifier
                                         .size(44.dp)
                                         .background(Color.Transparent, CircleShape)
+                                        .bounceClick { /* mic */ }
                                 ) {
                                     Icon(
                                         Icons.Default.Mic,

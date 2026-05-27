@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.ui.components.premium.LiquidGlassSurface
+import com.example.ui.components.premium.DynamicGlassCard
 
 @Composable
 fun GlassCard(
@@ -25,21 +27,12 @@ fun GlassCard(
     elevation: Dp = 2.dp,
     content: @Composable BoxScope.() -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .shadow(elevation = elevation, shape = shape, spotColor = Color.Black.copy(alpha = 0.2f))
-            .clip(shape)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f)
-            )
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                shape = shape
-            )
-    ) {
-        content()
-    }
+    DynamicGlassCard(
+        modifier = modifier,
+        shape = shape,
+        elevation = elevation,
+        content = content
+    )
 }
 
 @Composable
@@ -48,16 +41,9 @@ fun GlassSurface(
     shape: Shape = RoundedCornerShape(24.dp),
     content: @Composable BoxScope.() -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.65f))
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                shape = shape
-            )
-    ) {
-        content()
-    }
+    LiquidGlassSurface(
+        modifier = modifier,
+        shape = shape,
+        content = content
+    )
 }

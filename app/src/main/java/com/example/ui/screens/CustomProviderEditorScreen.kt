@@ -15,8 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.data.database.CustomProviderEntity
-import com.example.ui.components.GlassCard
-import com.example.ui.components.GlassSurface
+import com.example.ui.components.premium.DynamicGlassCard
+import com.example.ui.components.premium.LiquidGlassSurface
+import com.example.ui.components.premium.bounceClick
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +35,7 @@ fun CustomProviderEditorScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            GlassSurface(
+            LiquidGlassSurface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -45,7 +46,7 @@ fun CustomProviderEditorScreen(
                     modifier = Modifier.padding(8.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack, modifier = Modifier.bounceClick { onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
@@ -71,7 +72,7 @@ fun CustomProviderEditorScreen(
             item {
                 Button(
                     onClick = { showAddForm = !showAddForm },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { showAddForm = !showAddForm },
                     shape = MaterialTheme.shapes.large
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
@@ -82,7 +83,7 @@ fun CustomProviderEditorScreen(
             
             if (showAddForm) {
                 item {
-                    GlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
+                    DynamicGlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("New Custom Provider", style = MaterialTheme.typography.titleMedium)
                             Spacer(modifier = Modifier.height(12.dp))
@@ -112,9 +113,23 @@ fun CustomProviderEditorScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                TextButton(onClick = { showAddForm = false }) { Text("Cancel") }
+                                TextButton(onClick = { showAddForm = false }, modifier = Modifier.bounceClick { showAddForm = false }) { Text("Cancel") }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Button(onClick = {
+                                    if (nameInput.isNotBlank() && urlInput.isNotBlank()) {
+                                        val entity = CustomProviderEntity(
+                                            id = java.util.UUID.randomUUID().toString(),
+                                            name = nameInput,
+                                            baseUrl = urlInput,
+                                            apiKey = keyInput
+                                        )
+                                        onSave(entity)
+                                        nameInput = ""
+                                        urlInput = ""
+                                        keyInput = ""
+                                        showAddForm = false
+                                    }
+                                }, modifier = Modifier.bounceClick {
                                     if (nameInput.isNotBlank() && urlInput.isNotBlank()) {
                                         val entity = CustomProviderEntity(
                                             id = java.util.UUID.randomUUID().toString(),
@@ -136,7 +151,7 @@ fun CustomProviderEditorScreen(
             }
 
             items(providers) { provider ->
-                GlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
+                DynamicGlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -146,7 +161,7 @@ fun CustomProviderEditorScreen(
                             Text(provider.name, style = MaterialTheme.typography.titleMedium)
                             Text(provider.baseUrl, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        IconButton(onClick = { onDelete(provider) }) {
+                        IconButton(onClick = { onDelete(provider) }, modifier = Modifier.bounceClick { onDelete(provider) }) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                         }
                     }

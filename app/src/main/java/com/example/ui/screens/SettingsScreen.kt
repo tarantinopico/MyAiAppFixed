@@ -19,8 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.ApiKey
 import com.example.domain.model.ProviderType
-import com.example.ui.components.GlassCard
-import com.example.ui.components.GlassSurface
+import com.example.ui.components.premium.DynamicGlassCard
+import com.example.ui.components.premium.LiquidGlassSurface
+import com.example.ui.components.premium.bounceClick
 import com.example.ui.viewmodel.SettingsViewModel
 import androidx.compose.foundation.clickable
 import com.example.ui.viewmodel.SettingsUiState
@@ -38,7 +39,7 @@ fun SettingsScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            com.example.ui.components.GlassSurface(
+            LiquidGlassSurface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -49,7 +50,7 @@ fun SettingsScreen(
                     modifier = Modifier.padding(8.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = onBack, modifier = Modifier.bounceClick { onBack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
@@ -106,7 +107,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onNavigateToModels,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { onNavigateToModels() },
                     shape = MaterialTheme.shapes.large,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
@@ -117,7 +118,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = onNavigateToCustomProviders,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { onNavigateToCustomProviders() },
                     shape = MaterialTheme.shapes.large,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f)
@@ -149,7 +150,7 @@ fun TokenStatsSection(stats: List<com.example.data.database.TokenStatsResult>) {
         color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.padding(vertical = 8.dp)
     )
-    GlassCard(
+    DynamicGlassCard(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         elevation = 2.dp
@@ -218,7 +219,7 @@ fun AdvancedSettingsSection(
         color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.padding(vertical = 8.dp)
     )
-    GlassCard(
+    DynamicGlassCard(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         elevation = 2.dp
@@ -246,7 +247,7 @@ fun SettingsToggleItem(title: String, checked: Boolean, onToggle: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(title, style = MaterialTheme.typography.bodyLarge)
-        Switch(checked = checked, onCheckedChange = { onToggle() })
+        Switch(checked = checked, onCheckedChange = { onToggle() }, modifier = Modifier.bounceClick { onToggle() })
     }
 }
 
@@ -261,7 +262,7 @@ fun ProviderKeyManagerCard(
     var keyInput by remember { mutableStateOf("") }
     var labelInput by remember { mutableStateOf("") }
 
-    GlassCard(
+    DynamicGlassCard(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         elevation = 2.dp
@@ -277,7 +278,7 @@ fun ProviderKeyManagerCard(
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                IconButton(onClick = { showAddForm = !showAddForm }, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = { showAddForm = !showAddForm }, modifier = Modifier.size(32.dp).bounceClick { showAddForm = !showAddForm }) {
                     Icon(Icons.Default.Add, contentDescription = "Add Key", tint = MaterialTheme.colorScheme.primary)
                 }
             }
@@ -302,7 +303,7 @@ fun ProviderKeyManagerCard(
                         }
                         Text(if (key.failureCount > 0) "${key.failureCount} Failures" else "Healthy", style = MaterialTheme.typography.labelSmall, color = if(key.failureCount > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
                     }
-                    TextButton(onClick = { onDelete(key.id) }) {
+                    TextButton(onClick = { onDelete(key.id) }, modifier = Modifier.bounceClick { onDelete(key.id) }) {
                         Text("Remove", color = MaterialTheme.colorScheme.error)
                     }
                 }
@@ -333,11 +334,18 @@ fun ProviderKeyManagerCard(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        TextButton(onClick = { showAddForm = false }) {
+                        TextButton(onClick = { showAddForm = false }, modifier = Modifier.bounceClick { showAddForm = false }) {
                             Text("Cancel")
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(onClick = {
+                            if (keyInput.isNotBlank()) {
+                                onSave(labelInput.ifBlank { "Default Key" }, keyInput)
+                                keyInput = ""
+                                labelInput = ""
+                                showAddForm = false
+                            }
+                        }, modifier = Modifier.bounceClick {
                             if (keyInput.isNotBlank()) {
                                 onSave(labelInput.ifBlank { "Default Key" }, keyInput)
                                 keyInput = ""

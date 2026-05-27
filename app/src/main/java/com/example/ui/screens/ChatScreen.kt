@@ -37,8 +37,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.ChatMessage
 import com.example.domain.model.MessageRole
 import com.example.domain.model.ProviderType
-import com.example.ui.components.GlassCard
-import com.example.ui.components.GlassSurface
+import com.example.ui.components.premium.DynamicGlassCard
+import com.example.ui.components.premium.LiquidGlassSurface
+import com.example.ui.components.premium.bounceClick
 import com.example.ui.viewmodel.ChatViewModel
 import androidx.compose.ui.viewinterop.AndroidView
 import android.widget.TextView
@@ -68,7 +69,7 @@ fun ChatScreen(
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                com.example.ui.components.GlassSurface(
+                LiquidGlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
@@ -321,49 +322,56 @@ fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.mod
             Surface(
                 shape = cardShape,
                 color = Color.Transparent,
-                modifier = Modifier.widthIn(max = 340.dp)
+                modifier = Modifier.widthIn(max = 340.dp).padding(end = 4.dp)
             ) {
-                Column(
+                Box(
                     modifier = Modifier
-                        .background(userGradient)
-                        .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
+                        .background(userGradient, shape = cardShape)
+                        .padding(1.dp) // Subtle border
+                        .background(Color.White.copy(alpha = 0.05f), shape = cardShape)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
+                    Column(
+                        modifier = Modifier
+                            .background(userGradient)
+                            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
                     ) {
-                        Text(
-                            text = message.content,
-                            color = textColor,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.weight(1f).padding(bottom = 2.dp)
-                        )
-                        
-                        val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
-                        IconButton(
-                            onClick = { clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content)) },
-                            modifier = Modifier.size(24.dp).padding(start = 8.dp, top = 2.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
                         ) {
-                            Icon(
-                                Icons.Default.ContentCopy,
-                                contentDescription = "Copy",
-                                tint = textColor.copy(alpha = 0.5f),
-                                modifier = Modifier.size(16.dp)
+                            Text(
+                                text = message.content,
+                                color = textColor,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.weight(1f).padding(bottom = 2.dp)
                             )
+                            
+                            val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+                            IconButton(
+                                onClick = { clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content)) },
+                                modifier = Modifier.size(24.dp).padding(start = 8.dp, top = 2.dp).bounceClick { clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content)) }
+                            ) {
+                                Icon(
+                                    Icons.Default.ContentCopy,
+                                    contentDescription = "Copy",
+                                    tint = textColor.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
         } else {
-            GlassCard(
+            com.example.ui.components.premium.DynamicGlassCard(
                 shape = cardShape,
                 modifier = Modifier.widthIn(max = 340.dp),
-                elevation = 1.dp
+                elevation = 4.dp
             ) {
                 Column(
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                         .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 12.dp)
                 ) {
                     if (message.errorMessage != null) {
@@ -422,7 +430,7 @@ fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.mod
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 8.dp),
+                                .padding(top = 12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -433,7 +441,7 @@ fun ChatMessageItem(message: ChatMessage, onPreviewFile: (com.example.domain.mod
                                     onClick = {
                                         clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content))
                                     },
-                                    modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(24.dp).bounceClick { clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(message.content)) }
                                 ) {
                                     Icon(
                                         Icons.Default.ContentCopy,
