@@ -121,7 +121,7 @@ fun EmptyChatState(
                             )
                         }
                         Icon(
-                            imageVector = androidx.compose.material.icons.automirrored.outlined.ArrowForward,
+                            imageVector = Icons.Outlined.ArrowForward,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)

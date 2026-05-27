@@ -280,7 +280,7 @@ fun ComposerPlusMenuSheet(
         val menuItems = listOf(
             Triple(Icons.Outlined.AutoAwesome, if (isAgentModeEnabled) "Disable Agent" else "Agent", onToggleAgentMode),
             Triple(Icons.Default.Search, if (isSearchModeEnabled) "Disable Search" else "Search", onToggleSearchMode),
-            Triple(androidx.compose.material.icons.automirrored.filled.List, "Prompt Library", onNavigateToPromptLibrary)
+            Triple(Icons.Default.List, "Prompt Library", onNavigateToPromptLibrary)
         )
         
         Row(
