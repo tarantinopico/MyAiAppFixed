@@ -1,5 +1,8 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.*
 import kotlinx.coroutines.flow.collectLatest
@@ -22,8 +25,10 @@ fun rememberSmartAutoScrollState(
         }
     }
 
-    LaunchedEffect(isStreaming, itemCount) {
-        if (isStreaming && controller.isAutoFollowEnabled) {
+    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
+
+    LaunchedEffect(isStreaming, itemCount, imeBottom) {
+        if ((isStreaming || imeBottom > 0) && controller.isAutoFollowEnabled) {
             if (itemCount > 0) {
                 // Large offset to scroll to the very bottom of the item
                 listState.animateScrollToItem(itemCount - 1, Int.MAX_VALUE)

@@ -114,26 +114,14 @@ fun ChatScreen(
                     }
                 }
             },
-            bottomBar = {
-                AdvancedChatComposer(
-                    text = uiState.currentInput,
-                    isStreaming = uiState.isStreaming,
-                    isAgentModeEnabled = uiState.isAgentModeEnabled,
-                    onAgentModeChanged = { viewModel.setAgentMode(it) },
-                    isSearchModeEnabled = uiState.isSearchModeEnabled,
-                    onSearchModeChanged = { viewModel.setSearchMode(it) },
-                    onTextChanged = { viewModel.onInputChanged(it) },
-                    onSend = { viewModel.sendMessage() },
-                    onStop = { viewModel.stopStreaming() }
-                )
-            }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
             ) {
                 if (uiState.messages.isEmpty()) {
-                    Box(modifier = Modifier.weight(1f).padding(innerPadding)) {
+                    Box(modifier = Modifier.weight(1f)) {
                         com.example.ui.components.EmptyChatState(
                             provider = uiState.activeProvider,
                             onSuggestionClick = { suggestion ->
@@ -149,8 +137,8 @@ fun ChatScreen(
                             .weight(1f)
                             .padding(horizontal = 8.dp),
                         contentPadding = PaddingValues(
-                            top = innerPadding.calculateTopPadding() + 8.dp,
-                            bottom = innerPadding.calculateBottomPadding() + 16.dp
+                            top = 8.dp,
+                            bottom = 16.dp
                         ),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
@@ -164,6 +152,18 @@ fun ChatScreen(
                         }
                     }
                 }
+                
+                AdvancedChatComposer(
+                    text = uiState.currentInput,
+                    isStreaming = uiState.isStreaming,
+                    isAgentModeEnabled = uiState.isAgentModeEnabled,
+                    onAgentModeChanged = { viewModel.setAgentMode(it) },
+                    isSearchModeEnabled = uiState.isSearchModeEnabled,
+                    onSearchModeChanged = { viewModel.setSearchMode(it) },
+                    onTextChanged = { viewModel.onInputChanged(it) },
+                    onSend = { viewModel.sendMessage() },
+                    onStop = { viewModel.stopStreaming() }
+                )
             }
         }
         
