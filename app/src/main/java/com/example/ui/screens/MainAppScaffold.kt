@@ -61,7 +61,7 @@ fun MainAppScaffold(appContainer: AppContainer) {
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                drawerContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.65f),
                 drawerTonalElevation = 0.dp
             ) {
                 ConversationDrawerContent(
@@ -75,17 +75,21 @@ fun MainAppScaffold(appContainer: AppContainer) {
             }
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-            // Blurred Glass Orbs
+        val mainContentBlur by animateDpAsState(
+            targetValue = if (drawerState.targetValue == DrawerValue.Open) 16.dp else 0.dp,
+            label = "main_content_blur"
+        )
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).blur(radius = mainContentBlur)) {
+            // Blurred Glass Orbs - More vibrant and modern
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .offset(x = (-100).dp, y = (-100).dp)
-                    .blur(radius = 100.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
+                    .offset(x = (-150).dp, y = (-100).dp)
+                    .blur(radius = 120.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                com.example.ui.theme.AccentPurple.copy(alpha = 0.45f),
                                 Color.Transparent
                             )
                         )
@@ -94,12 +98,26 @@ fun MainAppScaffold(appContainer: AppContainer) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .offset(x = 100.dp, y = 300.dp)
-                    .blur(radius = 120.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
+                    .offset(x = 150.dp, y = 350.dp)
+                    .blur(radius = 150.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
+                                com.example.ui.theme.AccentBlue.copy(alpha = 0.35f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(x = 0.dp, y = 700.dp)
+                    .blur(radius = 130.dp, edgeTreatment = androidx.compose.ui.draw.BlurredEdgeTreatment.Unbounded)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                com.example.ui.theme.AccentTeal.copy(alpha = 0.35f),
                                 Color.Transparent
                             )
                         )

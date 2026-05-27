@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.viewinterop.AndroidView
 import io.noties.markwon.Markwon
 
@@ -15,7 +16,7 @@ import io.noties.markwon.Markwon
 fun PremiumMarkdownRenderer(
     markdown: String,
     modifier: Modifier = Modifier,
-    textColor: Color = Color.Unspecified
+    textColor: Color = LocalContentColor.current
 ) {
     val context = LocalContext.current
     val markwon = remember(context) { Markwon.create(context) }
@@ -24,18 +25,14 @@ fun PremiumMarkdownRenderer(
         modifier = modifier.fillMaxWidth(),
         factory = { ctx ->
             TextView(ctx).apply {
-                if (textColor != Color.Unspecified) {
-                    setTextColor(textColor.toArgb())
-                }
+                setTextColor(textColor.toArgb())
                 textSize = 16f
                 setLineSpacing(0f, 1.2f)
             }
         },
         update = { textView ->
             markwon.setMarkdown(textView, markdown)
-            if (textColor != Color.Unspecified) {
-                textView.setTextColor(textColor.toArgb())
-            }
+            textView.setTextColor(textColor.toArgb())
         }
     )
 }
