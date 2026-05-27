@@ -32,6 +32,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onNavigateToModels: () -> Unit,
     onNavigateToCustomProviders: () -> Unit,
+    onNavigateToAppearance: () -> Unit,
     viewModel: SettingsViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -125,6 +126,17 @@ fun SettingsScreen(
                     )
                 ) {
                     Text("Manage Custom Endpoints", style = MaterialTheme.typography.titleMedium)
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = onNavigateToAppearance,
+                    modifier = Modifier.fillMaxWidth().height(56.dp).bounceClick { onNavigateToAppearance() },
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f)
+                    )
+                ) {
+                    Text("Appearance & Themes", style = MaterialTheme.typography.titleMedium)
                 }
             }
 

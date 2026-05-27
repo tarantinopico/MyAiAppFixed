@@ -29,6 +29,7 @@ object NavigationRoute {
     const val SETTINGS = "settings"
     const val MODELS = "models"
     const val CUSTOM_PROVIDERS = "custom_providers"
+    const val APPEARANCE = "appearance"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,6 +146,7 @@ fun MainAppScaffold(appContainer: AppContainer) {
                         onBack = { navController.popBackStack() },
                         onNavigateToModels = { navController.navigate(NavigationRoute.MODELS) },
                         onNavigateToCustomProviders = { navController.navigate(NavigationRoute.CUSTOM_PROVIDERS) },
+                        onNavigateToAppearance = { navController.navigate(NavigationRoute.APPEARANCE) },
                         viewModel = viewModel(factory = factory)
                     )
                 }
@@ -162,6 +164,18 @@ fun MainAppScaffold(appContainer: AppContainer) {
                         onSave = { vm.addProvider(it) },
                         onDelete = { vm.deleteProvider(it) },
                         onBack = { navController.popBackStack() }
+                    )
+                }
+                composable(NavigationRoute.APPEARANCE) {
+                    val themeMode by appContainer.themePreferences.themeMode.collectAsStateWithLifecycle()
+                    AppearanceCustomizationScreen(
+                        onBack = { navController.popBackStack() },
+                        blurIntensity = 100f,
+                        onBlurIntensityChange = {},
+                        animationSpeed = 1f,
+                        onAnimationSpeedChange = {},
+                        currentThemeMode = themeMode,
+                        onThemeModeChange = { appContainer.themePreferences.setThemeMode(it) }
                     )
                 }
             }

@@ -21,7 +21,9 @@ fun AppearanceCustomizationScreen(
     blurIntensity: Float,
     onBlurIntensityChange: (Float) -> Unit,
     animationSpeed: Float,
-    onAnimationSpeedChange: (Float) -> Unit
+    onAnimationSpeedChange: (Float) -> Unit,
+    currentThemeMode: Int,
+    onThemeModeChange: (Int) -> Unit
 ) {
     Scaffold(
         containerColor = Color.Transparent,
@@ -60,6 +62,32 @@ fun AppearanceCustomizationScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item {
+                DynamicGlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Theme Mode", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                            FilterChip(
+                                selected = currentThemeMode == 0,
+                                onClick = { onThemeModeChange(0) },
+                                label = { Text("Auto") }
+                            )
+                            FilterChip(
+                                selected = currentThemeMode == 1,
+                                onClick = { onThemeModeChange(1) },
+                                label = { Text("Light") }
+                            )
+                            FilterChip(
+                                selected = currentThemeMode == 2,
+                                onClick = { onThemeModeChange(2) },
+                                label = { Text("Dark") }
+                            )
+                        }
+                    }
+                }
+            }
+
             item {
                 DynamicGlassCard(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, elevation = 2.dp) {
                     Column(modifier = Modifier.padding(16.dp)) {
